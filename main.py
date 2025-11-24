@@ -13,7 +13,7 @@ import seaborn as sns
 from scipy import stats
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
-
+from mpl_toolkits.mplot3d import Axes3D
 # Optional Dependency Check
 try:
     from statsmodels.tsa.stattools import grangercausalitytests
@@ -238,34 +238,40 @@ class ForensicEngine:
         self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0) if 'Price' in self.df.columns else 0
 
     def _calc_tci(self):
-        # Advanced TCI: (Magnitude + Volatility) * Delay
-        if 'Fees' in self.df.columns:
-            capped_fees = self.df['Fees'].clip(upper=self.df['Fees'].quantile(0.99))
-            fee_mean = capped_fees.rolling(30).mean().fillna(method='bfill')
-            fee_std = capped_fees.rolling(30).std().fillna(0)
-            fee_stress = fee_mean + fee_std
-            
-            if 'Min_Fee' in self.df.columns:
-                self.df['Insolvency'] = self.df['Min_Fee']
-                self.insol_lbl = "Min Fee (sat/vB)" if self.df['Min_Fee'].median() < 50 else "Min Fee (Total)"
-                self.insol_thresh = 5.0 if self.df['Min_Fee'].median() < 50 else 1200.0
+            # Advanced TCI: (Magnitude + Volatility) * Delay
+            if 'Fees' in self.df.columns:
+                capped_fees = self.df['Fees'].clip(upper=self.df['Fees'].quantile(0.99))
+                fee_mean = capped_fees.rolling(30).mean().bfill()
+                fee_std = capped_fees.rolling(30).std().fillna(0)
+                fee_stress = fee_mean + fee_std
+                
+                if 'Min_Fee' in self.df.columns:
+                    self.df['Insolvency'] = self.df['Min_Fee'] # <--- FIXED: Ensure column exists
+                    
+                    # If median > 50, assume Cents or Sats
+                    if self.df['Min_Fee'].median() > 50:
+                         self.insol_lbl = "Cost (US Cents)" 
+                         self.insol_thresh = 1000.0       # $10.00 = 1000 cents
+                    else:
+                         self.insol_lbl = "Min Fee (sat/vB)"
+                         self.insol_thresh = 5.0
+                else:
+                    self.df['Insolvency'] = self.df['Fees']
+                    self.insol_lbl = "Avg Fee (USD)"
+                    self.insol_thresh = 10.0
             else:
-                self.df['Insolvency'] = self.df['Fees']
-                self.insol_lbl = "Avg Fee (USD)"
-                self.insol_thresh = 10.0
-        else:
-            fee_stress = 0
-            self.df['Insolvency'] = 0
-            self.insol_lbl = "N/A"
-            self.insol_thresh = 0
+                fee_stress = 0
+                self.df['Insolvency'] = 0
+                self.insol_lbl = "N/A"
+                self.insol_thresh = 0
 
-        # Alias for Plotting compatibility
-        self.df['RCI'] = self.df['Insolvency']
+            # Alias for Plotting compatibility
+            self.df['RCI'] = self.df['Insolvency']
 
-        delay_factor = (self.df['Delay'] / 10.0) if 'Delay' in self.df.columns else 1.0
-        self.df['TCI'] = fee_stress * delay_factor
-        self.df['TCI'] = self.df['TCI'].fillna(0)
-
+            delay_factor = (self.df['Delay'] / 10.0) if 'Delay' in self.df.columns else 1.0
+            self.df['TCI'] = fee_stress * delay_factor
+            self.df['TCI'] = self.df['TCI'].fillna(0)
+            
     def _detect_regimes(self):
         self.thresh_val = self.df['TCI'].quantile(self.threshold_pct / 100.0)
         self.df['Regime'] = np.where(self.df['TCI'] >= self.thresh_val, 'SHOCK', 'NORMAL')
@@ -707,139 +713,202 @@ class ResearchSuite:
     #  VISUALIZATION SUITE (From Code 1, Adapted for Code 2 Logic)
     # ==========================================================================
     def _plot_visualizations(self):
-        df = self.engine.df
-        thresh = self.engine.thresh_val
-        
-        for tab_id in self.notebook.tabs():
-            self.notebook.forget(tab_id)
+            self._log("--- STARTING VISUALIZATION SEQUENCE ---")
+            
+            # 1. DEBUG: Check Data Integrity
+            df = self.engine.df
+            thresh = self.engine.thresh_val
+            
+            self._log(f"Final Dataset Shape: {df.shape}")
+            
+            if df.empty:
+                self._log("CRITICAL ERROR: Dataset is empty after merging/cleaning.")
+                self._log("Hint: Your files might not have overlapping dates, or 'dropna' removed everything.")
+                self._log("Try loading fewer files (e.g., just Price and Fees) to test.")
+                return
 
-        def create_independent_plot_tab(title, plot_func):
-            frame = tk.Frame(self.notebook, bg=THEME["bg"])
-            self.notebook.add(frame, text=title)
-            fig = Figure(figsize=(10, 8), dpi=100) 
-            ax = fig.add_subplot(111)
-            plot_func(ax)
-            ax.set_title(title, fontsize=14, fontweight='bold', pad=15, color=THEME["fg"])
-            for spine in ax.spines.values(): spine.set_color("#333")
-            canvas = FigureCanvasTkAgg(fig, master=frame)
-            canvas.draw()
-            toolbar = NavigationToolbar2Tk(canvas, frame)
-            toolbar.config(background=THEME["panel"])
-            toolbar._message_label.config(background=THEME["panel"], foreground="white")
-            for button in toolbar.winfo_children(): button.config(background=THEME["panel"])
-            toolbar.update()
-            canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        # --- Plots ---
-
-        def p_regime_scatter(ax):
-            norm = df[df['Regime']=='NORMAL']
-            shock = df[df['Regime']=='SHOCK']
-            ax.scatter(norm['TCI'], norm['Vel_30d_Change'], s=15, color=THEME["safe"], alpha=0.3, label="Normal")
-            ax.scatter(shock['TCI'], shock['Vel_30d_Change'], s=30, color=THEME["shock"], alpha=0.8, label="Shock")
-            ax.axvline(thresh, color="white", linestyle="--", alpha=0.5, label="Horizon")
-            ax.axhline(0, color="white", linestyle="-", alpha=0.1)
-            ax.set_xlabel("Friction (TCI)")
-            ax.set_ylabel("30-Day Velocity Impact (%)")
-            ax.legend(facecolor=THEME["panel"], labelcolor="white")
-
-        def p_prob_collapse(ax):
+            # 2. Reset Notebook
             try:
+                for tab_id in self.notebook.tabs():
+                    self.notebook.forget(tab_id)
+                self._log("Notebook tabs cleared.")
+            except Exception as e:
+                self._log(f"Warning clearing tabs: {e}")
+
+            # 3. Define the Tab Creator with Error Handling
+            def create_independent_plot_tab(title, plot_func):
+                self._log(f"Generating plot: {title}...")
+                try:
+                    frame = tk.Frame(self.notebook, bg=THEME["bg"])
+                    self.notebook.add(frame, text=title)
+                    
+                    # Setup Matplotlib Figure
+                    fig = Figure(figsize=(10, 8), dpi=100) 
+                    ax = fig.add_subplot(111)
+                    
+                    # Execute the specific plotting function
+                    plot_func(ax)
+                    
+                    # Styling
+                    ax.set_title(title, fontsize=14, fontweight='bold', pad=15, color=THEME["fg"])
+                    for spine in ax.spines.values(): spine.set_color("#333")
+                    
+                    # Embed in Tkinter
+                    canvas = FigureCanvasTkAgg(fig, master=frame)
+                    canvas.draw()
+                    
+                    # Toolbar
+                    toolbar = NavigationToolbar2Tk(canvas, frame)
+                    toolbar.config(background=THEME["panel"])
+                    toolbar._message_label.config(background=THEME["panel"], foreground="white")
+                    for button in toolbar.winfo_children(): button.config(background=THEME["panel"])
+                    toolbar.update()
+                    
+                    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+                    self._log(f" -> Success: {title}")
+                    
+                except Exception as e:
+                    self._log(f" -> FAILED {title}: {str(e)}")
+                    import traceback
+                    traceback.print_exc() # Print full error to terminal console
+
+            # --- PLOT DEFINITIONS (Safe Versions) ---
+
+            def p_regime_scatter(ax):
+                norm = df[df['Regime']=='NORMAL']
+                shock = df[df['Regime']=='SHOCK']
+                if len(norm) > 0: ax.scatter(norm['TCI'], norm['Vel_30d_Change'], s=15, color=THEME["safe"], alpha=0.3, label="Normal")
+                if len(shock) > 0: ax.scatter(shock['TCI'], shock['Vel_30d_Change'], s=30, color=THEME["shock"], alpha=0.8, label="Shock")
+                ax.axvline(thresh, color="white", linestyle="--", alpha=0.5, label="Horizon")
+                ax.axhline(0, color="white", linestyle="-", alpha=0.1)
+                ax.set_xlabel("Friction (TCI)")
+                ax.set_ylabel("30-Day Velocity Impact (%)")
+                ax.legend(facecolor=THEME["panel"], labelcolor="white")
+
+            def p_prob_collapse(ax):
                 v_norm = df[df['Regime']=='NORMAL']['Vel_30d_Change'].dropna()
                 v_shock = df[df['Regime']=='SHOCK']['Vel_30d_Change'].dropna()
-                sns.kdeplot(v_norm, ax=ax, color=THEME["safe"], fill=True, alpha=0.2, label="Normal")
-                sns.kdeplot(v_shock, ax=ax, color=THEME["shock"], fill=True, alpha=0.2, label="Shock")
-                ax.set_xlabel("Velocity Growth Probability")
-                ax.legend(facecolor=THEME["panel"], labelcolor="white")
-            except: ax.text(0.5, 0.5, "Insufficient Data", ha='center')
+                if len(v_norm) > 1 and len(v_shock) > 1:
+                    sns.kdeplot(v_norm, ax=ax, color=THEME["safe"], fill=True, alpha=0.2, label="Normal")
+                    sns.kdeplot(v_shock, ax=ax, color=THEME["shock"], fill=True, alpha=0.2, label="Shock")
+                    ax.set_xlabel("Velocity Growth Probability")
+                    ax.legend(facecolor=THEME["panel"], labelcolor="white")
+                else: ax.text(0.5, 0.5, "Insufficient Data for PDF", ha='center', color='yellow')
 
-        def p_damage_box(ax):
-            data = [df[df['Regime']=='NORMAL']['Vel_30d_Change'].dropna(),
-                    df[df['Regime']=='SHOCK']['Vel_30d_Change'].dropna()]
-            bp = ax.boxplot(data, patch_artist=True, tick_labels=['Normal', 'Shock'], widths=0.5)
-            colors = [THEME["safe"], THEME["shock"]]
-            for patch, color in zip(bp['boxes'], colors):
-                patch.set_facecolor(color)
-                patch.set_alpha(0.6)
-            for median in bp['medians']: median.set_color('white')
-            ax.set_ylabel("30-Day Velocity Impact (%)")
+            def p_damage_box(ax):
+                data = [df[df['Regime']=='NORMAL']['Vel_30d_Change'].dropna(),
+                        df[df['Regime']=='SHOCK']['Vel_30d_Change'].dropna()]
+                if len(data[0]) > 0 and len(data[1]) > 0:
+                    bp = ax.boxplot(data, patch_artist=True, tick_labels=['Normal', 'Shock'], widths=0.5)
+                    colors = [THEME["safe"], THEME["shock"]]
+                    for patch, color in zip(bp['boxes'], colors):
+                        patch.set_facecolor(color)
+                        patch.set_alpha(0.6)
+                    for median in bp['medians']: median.set_color('white')
+                    ax.set_ylabel("30-Day Velocity Impact (%)")
+                else: ax.text(0.5, 0.5, "Insufficient Data for Box Plot", ha='center', color='yellow')
 
-        def p_timeline(ax):
-            ax.plot(df.index, df['Velocity'], color=THEME["accent"], lw=1, label="Robust Velocity")
-            if 'Vel_Standard' in df.columns:
-                ax.plot(df.index, df['Vel_Standard'], color="#555", lw=1, linestyle="--", label="Standard NVT (Ref)")
-            ylim = ax.get_ylim()
-            ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Regime']=='SHOCK'), color=THEME["shock"], alpha=0.3)
-            ax.legend(facecolor=THEME["panel"], labelcolor="white")
-
-        def p_bootstrap(ax):
-            ax.plot(df.index, df['Insolvency'], color=THEME["warn"], lw=1)
-            ax.axhline(self.engine.insol_thresh, color=THEME["shock"], linestyle="--", label=f"Insolvency ({self.engine.insol_lbl})")
-            ax.set_yscale('log')
-            ax.set_ylabel(f"Cost ({self.engine.insol_lbl})")
-            ax.legend(facecolor=THEME["panel"], labelcolor="white")
-
-        def p_divergence(ax):
-            if 'Div_Score' in df.columns:
-                ax.fill_between(df.index, 0, df['Div_Score'], where=(df['Div_Score'] > 0), color=THEME["shock"], alpha=0.8, label="Artificial Vol")
-                ax.fill_between(df.index, 0, df['Div_Score'], where=(df['Div_Score'] <= 0), color=THEME["safe"], alpha=0.3, label="Organic")
-                ax.set_ylabel("Z-Score Divergence")
+            def p_timeline(ax):
+                ax.plot(df.index, df['Velocity'], color=THEME["accent"], lw=1, label="Robust Velocity")
+                ylim = ax.get_ylim()
+                ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Regime']=='SHOCK'), color=THEME["shock"], alpha=0.3)
                 ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
-        def p_hysteresis(ax):
-            x = df['TCI_Log'].rolling(14).mean()
-            y = df['Vel_Log'].rolling(14).mean()
-            points = ax.scatter(x, y, c=range(len(x)), cmap='twilight', s=15, alpha=0.8)
-            ax.set_xlabel("Log(Friction)")
-            ax.set_ylabel("Log(Utility)")
-            cbar = ax.figure.colorbar(points, ax=ax)
-            cbar.set_label("Time")
-            plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='white')
+            def p_bootstrap(ax):
+                # FIX: Handle zeros for log scale to prevent crash
+                plot_data = df['Insolvency'].replace(0, 0.0001)
+                ax.plot(df.index, plot_data, color=THEME["warn"], lw=1)
+                ax.axhline(self.engine.insol_thresh, color=THEME["shock"], linestyle="--", label=f"Insolvency ({self.engine.insol_lbl})")
+                ax.set_yscale('log')
+                ax.set_ylabel(f"Cost ({self.engine.insol_lbl})")
+                ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
-        def p_stagflation(ax):
-            colors = {'Boom':THEME["safe"], 'Speculation':THEME["warn"], 'Stagflation':"#b00b69", 'Capitulation':THEME["shock"]}
-            for state, col in colors.items():
-                sub = df[df['State']==state]
-                ax.scatter(sub['Price_Mom'], sub['Vel_Mom'], c=col, s=15, label=state, alpha=0.6)
-            ax.axhline(0, c='white', alpha=0.3, ls='--')
-            ax.axvline(0, c='white', alpha=0.3, ls='--')
-            ax.legend(facecolor=THEME["panel"], labelcolor="white")
+            def p_divergence(ax):
+                if 'Div_Score' in df.columns:
+                    ax.fill_between(df.index, 0, df['Div_Score'], where=(df['Div_Score'] > 0), color=THEME["shock"], alpha=0.8, label="Artificial Vol")
+                    ax.fill_between(df.index, 0, df['Div_Score'], where=(df['Div_Score'] <= 0), color=THEME["safe"], alpha=0.3, label="Organic")
+                    ax.set_ylabel("Z-Score Divergence")
+                    ax.legend(facecolor=THEME["panel"], labelcolor="white")
+                else: ax.text(0.5, 0.5, "Volume/Organic Data Missing", ha='center')
 
-        def p_sensitivity(ax):
-            pcts = range(80, 100)
-            net_damage = []
-            for p in pcts:
-                val = df['TCI'].quantile(p/100)
-                s_mean = df[df['TCI'] > val]['Vel_30d_Change'].mean()
-                n_mean = df[df['TCI'] <= val]['Vel_30d_Change'].mean()
-                net_damage.append(s_mean - n_mean)
-            ax.plot(pcts, net_damage, color=THEME["shock"], marker='o')
-            ax.axhline(0, color='white', linestyle='--')
-            ax.set_xlabel("Threshold Percentile")
-            ax.set_ylabel("Net Damage (%)")
+            def p_hysteresis(ax):
+                # FIX: Drop NaNs from rolling window so color array matches geometry length
+                df_plot = df[['TCI_Log', 'Vel_Log']].rolling(14).mean().dropna()
+                if not df_plot.empty:
+                    x = df_plot['TCI_Log']
+                    y = df_plot['Vel_Log']
+                    points = ax.scatter(x, y, c=range(len(x)), cmap='twilight', s=15, alpha=0.8)
+                    ax.set_xlabel("Log(Friction)")
+                    ax.set_ylabel("Log(Utility)")
+                    cbar = ax.figure.colorbar(points, ax=ax)
+                    cbar.set_label("Time")
+                    plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='white')
+                else:
+                    ax.text(0.5, 0.5, "Insufficient Data for Hysteresis", ha='center', color='yellow')
 
-        def p_event_horizon(ax):
-            if 'Mempool' in df.columns:
-                sc = ax.scatter(df['Mempool'], df['Delay'], c=df['Fees'], cmap='inferno', s=15)
-                ax.set_xlabel("Mempool Size")
-                ax.set_ylabel("Delay")
-                cbar = ax.figure.colorbar(sc, ax=ax)
-                cbar.set_label("Fees")
-                plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='white')
-            else: ax.text(0.5, 0.5, "Mempool Data Missing", ha='center')
+            def p_stagflation(ax):
+                colors = {'Boom':THEME["safe"], 'Speculation':THEME["warn"], 'Stagflation':"#b00b69", 'Capitulation':THEME["shock"]}
+                found = False
+                for state, col in colors.items():
+                    sub = df[df['State']==state]
+                    if not sub.empty:
+                        found = True
+                        ax.scatter(sub['Price_Mom'], sub['Vel_Mom'], c=col, s=15, label=state, alpha=0.6)
+                if found:
+                    ax.axhline(0, c='white', alpha=0.3, ls='--')
+                    ax.axvline(0, c='white', alpha=0.3, ls='--')
+                    # FIX: Added Labels
+                    ax.set_xlabel("Price Momentum (30d %)")
+                    ax.set_ylabel("Utility Momentum (30d %)")
+                    ax.legend(facecolor=THEME["panel"], labelcolor="white")
+                else: ax.text(0.5, 0.5, "No State Data", ha='center')
 
-        # Register Tabs
-        create_independent_plot_tab("Regime Scatter", p_regime_scatter)
-        create_independent_plot_tab("Probability Collapse", p_prob_collapse)
-        create_independent_plot_tab("Damage Assessment", p_damage_box)
-        create_independent_plot_tab("Shock Timeline", p_timeline)
-        create_independent_plot_tab("Insolvency Paradox", p_bootstrap)
-        create_independent_plot_tab("Whale Divergence", p_divergence)
-        create_independent_plot_tab("Phase Hysteresis", p_hysteresis)
-        create_independent_plot_tab("Stagflation Matrix", p_stagflation)
-        create_independent_plot_tab("Sensitivity Curve", p_sensitivity)
-        create_independent_plot_tab("Event Horizon", p_event_horizon)
+            def p_sensitivity(ax):
+                pcts = range(80, 100)
+                net_damage = []
+                for p in pcts:
+                    val = df['TCI'].quantile(p/100)
+                    s_mean = df[df['TCI'] > val]['Vel_30d_Change'].mean()
+                    n_mean = df[df['TCI'] <= val]['Vel_30d_Change'].mean()
+                    net_damage.append(s_mean - n_mean)
+                ax.plot(pcts, net_damage, color=THEME["shock"], marker='o')
+                ax.axhline(0, color='white', linestyle='--')
+                ax.set_xlabel("Threshold Percentile")
+                ax.set_ylabel("Net Damage (%)")
 
+            def p_event_horizon(ax):
+                # Hexbin Density Plot
+                if 'Mempool' in df.columns and 'Delay' in df.columns:
+                    subset = df[(df['Mempool'] > 0) & (df['Delay'] > 0)]
+                    if len(subset) > 10:
+                        hb = ax.hexbin(subset['Mempool'], subset['Delay'], gridsize=25, cmap='inferno', mincnt=1, bins='log', linewidths=0)
+                        ax.set_xlabel("Mempool (Bytes)")
+                        ax.set_ylabel("Delay (Min)")
+                        cb = ax.figure.colorbar(hb, ax=ax)
+                        cb.set_label("Density (Log)")
+                        plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
+                        horizon_x = subset['Mempool'].quantile(0.90)
+                        ax.axvline(horizon_x, color=THEME["safe"], linestyle="--", alpha=0.5)
+                        ax.text(horizon_x, subset['Delay'].max(), " Saturation", color=THEME["safe"], fontsize=8)
+                        ax.grid(False)
+                    else: ax.text(0.5, 0.5, "Insufficient Data (>0)", ha='center', color='yellow')
+                else: ax.text(0.5, 0.5, "Mempool/Delay Missing", ha='center', color='red')
+
+            # 4. Execute Creation Loop
+            self._log("--- Building Tabs ---")
+            create_independent_plot_tab("Regime Scatter", p_regime_scatter)
+            create_independent_plot_tab("Probability Collapse", p_prob_collapse)
+            create_independent_plot_tab("Damage Assessment", p_damage_box)
+            create_independent_plot_tab("Shock Timeline", p_timeline)
+            create_independent_plot_tab("Insolvency Paradox", p_bootstrap)
+            create_independent_plot_tab("Whale Divergence", p_divergence)
+            create_independent_plot_tab("Phase Hysteresis", p_hysteresis)
+            create_independent_plot_tab("Stagflation Matrix", p_stagflation)
+            create_independent_plot_tab("Sensitivity Curve", p_sensitivity)
+            create_independent_plot_tab("Event Horizon", p_event_horizon)
+            
+            self._log("--- VISUALIZATION COMPLETE ---")
+            
     def _export(self):
             if self.engine is None: return
             self._log("Generating Full Forensic Report...")
@@ -903,8 +972,10 @@ class ResearchSuite:
                     p_val = res[14][0]['ssr_ftest'][1]
                     color = "#ff003c" if p_val < 0.05 else "#888"
                     verdict = "CONFIRMED" if p_val < 0.05 else "UNPROVEN"
-                    granger_html = f"<tr><td><strong>Granger Causality (Volume)</strong></td><td>Lag 14 Days</td><td style='color:{color}'>{p_val:.6f}</td><td style='color:{color}; font-weight:bold;'>{verdict}</td></tr>"
+                    # FIX: Merged columns to match HTML header (Metric | Value | Implication)
+                    granger_html = f"<tr><td><strong>Granger Causality (Volume)</strong></td><td class='mono'>Lag 14 | p={p_val:.4f}</td><td style='color:{color}; font-weight:bold;'>{verdict}</td></tr>"
                 except: pass
+
 
             # ==============================================================================
             #  3. MATH VALIDATION (Running the Validator)
