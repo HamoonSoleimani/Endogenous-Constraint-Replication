@@ -37,7 +37,7 @@ The `main.py` script launches a GUI-based research suite ("Forensic Audit Suite 
 ### Installation
 
 ```bash
-git clone https://github.com/hamoon-soleimani/endogenous-constraint-replication.git
+git clone https://github.com/HamoonSoleimani/Endogenous-Constraint-Replication.git
 cd endogenous-constraint-replication
 pip install -r requirements.txt
 ```
@@ -89,7 +89,7 @@ If you use this code in your research, please cite the paper:
   author={Soleimani, Hamoon},
   year={2025},
   month={November},
-  note={Available at GitHub: https://github.com/hamoon-soleimani/endogenous-constraint-replication}
+  note={Available at GitHub: https://github.com/HamoonSoleimani/Endogenous-Constraint-Replication}
 }
 ```
 
