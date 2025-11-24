@@ -57,14 +57,14 @@ plt.rcParams.update({
 class DataHandler:
     """
     Combines the robust parsing of Code 2 with the rich dummy data generation of Code 1
-    to support all visualization types.
+    to support all visualization types, now including UTXO Logic.
     """
     
     @staticmethod
     def generate_dummy_data():
         """
         Generates synthetic data that models the 'Endogenous Destabilizer' 
-        with L2/Realized Cap logic and Mempool physics.
+        with L2/Realized Cap logic, Mempool physics, and UTXO Set Dynamics.
         """
         dates = pd.date_range(start="2016-01-01", end="2025-11-22", freq='D')
         n = len(dates)
@@ -78,23 +78,45 @@ class DataHandler:
         base_fee = np.random.lognormal(1, 0.8, n)
         min_fee = np.ones(n)
         
+        # 3. UTXO Base Trend (Linear Growth 40M -> 150M)
+        utxo_trend = np.linspace(40000000, 150000000, n)
+        utxo_noise = np.random.normal(0, 500000, n)
+        utxo_count = utxo_trend + utxo_noise
+        
         # Inject Shocks
         is_shock = np.zeros(n)
         for _ in range(12):
             start = np.random.randint(50, n-100)
             duration = np.random.randint(14, 60)
+            
+            # Fee Spike
             base_fee[start:start+duration] *= np.linspace(2, 25, duration)
             min_fee[start:start+duration] = np.random.uniform(5, 50, duration)
             is_shock[start:start+duration] = 1
             
+            # UTXO Logic: Pre-2023 (Consolidation), Post-2023 (Bloat)
+            curr_date = dates[start]
+            if curr_date.year < 2023:
+                # Retail Exodus/Consolidation -> UTXO Count Drops
+                drop_curve = np.linspace(0, -2000000, duration)
+                utxo_count[start:start+duration] += drop_curve
+                # Persist the drop (Hysteresis)
+                utxo_count[start+duration:] -= 2000000
+            else:
+                # Ordinal Bloat -> UTXO Count Explodes
+                bloat_curve = np.linspace(0, 5000000, duration)
+                utxo_count[start:start+duration] += bloat_curve
+                # Persist the bloat
+                utxo_count[start+duration:] += 5000000
+            
         fees = base_fee
         
-        # 3. Mempool & Delay (Physical Constraints for Event Horizon Plot)
+        # 4. Mempool & Delay (Physical Constraints for Event Horizon Plot)
         mempool_size = fees * np.random.uniform(50000, 200000, n)
         delay = (mempool_size / 100000) + np.random.normal(10, 2, n)
         delay = np.maximum(delay, 10)
         
-        # 4. L2 & Volume Logic
+        # 5. L2 & Volume Logic
         ln_cap = np.linspace(0, 5000, n) * (1 + np.random.normal(0, 0.05, n))
         organic_trend = np.linspace(1000, 50000, n)
         friction_drag = pd.Series(fees).rolling(30).mean() * 50
@@ -115,7 +137,8 @@ class DataHandler:
             'NVT': nvt,
             'LN_Cap': ln_cap,
             'Min_Fee': min_fee,
-            'MVRV': mvrv
+            'MVRV': mvrv,
+            'UTXO': utxo_count
         })
         return df.set_index('Date')
 
@@ -160,7 +183,8 @@ class DataHandler:
                 target_col = None
                 hint_map = {
                     'ln_cap': ['btc', 'cap', 'amount'], 'fees': ['usd', 'cost', 'fee'],
-                    'price': ['usd', 'val', 'price'], 'min_fee': ['sat', 'vbyte', 'fee']
+                    'price': ['usd', 'val', 'price'], 'min_fee': ['sat', 'vbyte', 'fee'],
+                    'utxo': ['count', 'output', 'utxo']
                 }
                 search_terms = hint_map.get(hint.lower(), ['val', 'usd', 'btc'])
                 for term in search_terms:
@@ -198,6 +222,7 @@ class ForensicEngine:
         self._detect_regimes()
         self._calc_impact_metrics()
         self._calc_divergence() # From Code 1
+        self._calc_utxo_health() # NEW: UTXO Logic
         self._calc_phase_state()
 
     def _apply_logical_fixes(self):
@@ -246,7 +271,7 @@ class ForensicEngine:
                 fee_stress = fee_mean + fee_std
                 
                 if 'Min_Fee' in self.df.columns:
-                    self.df['Insolvency'] = self.df['Min_Fee'] # <--- FIXED: Ensure column exists
+                    self.df['Insolvency'] = self.df['Min_Fee'] 
                     
                     # If median > 50, assume Cents or Sats
                     if self.df['Min_Fee'].median() > 50:
@@ -296,6 +321,25 @@ class ForensicEngine:
             vol_z = scaler.fit_transform(self.df[['Volume']].fillna(0))
             org_z = scaler.fit_transform(self.df[['Organic']].fillna(0))
             self.df['Div_Score'] = vol_z - org_z
+
+    def _calc_utxo_health(self):
+        # Calculate the rate of change in the UTXO set
+        if 'UTXO' in self.df.columns:
+            self.df['UTXO_Growth'] = self.df['UTXO'].pct_change(30)
+            
+            # THE INSOLVENCY CHECK:
+            # If Fees are High (Shock) AND UTXO Growth is Negative -> Confirmed Retail Exodus
+            condition_exodus = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] < 0)
+            self.df['Confirmed_Exodus'] = np.where(condition_exodus, 1, 0)
+            
+            # THE ORDINAL NOISE (2023+):
+            # If Fees are High AND UTXO Growth is Massive -> Spam/Bloat (Not Adoption)
+            condition_bloat = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] > 0.05)
+            self.df['State_Bloat'] = np.where(condition_bloat, 1, 0)
+        else:
+            self.df['UTXO_Growth'] = 0
+            self.df['Confirmed_Exodus'] = 0
+            self.df['State_Bloat'] = 0
 
     def _calc_phase_state(self):
         self.df['TCI_Log'] = np.log1p(self.df['TCI'])
@@ -403,7 +447,98 @@ class ReportGenerator:
         
         sig_verdict = "SIGNIFICANT (p < 0.05)" if welch[1] < 0.05 else "INCONCLUSIVE (Tail Noise)"
 
-        # Construct HTML
+        # UTXO Stats (Basic)
+        if 'UTXO' in df.columns:
+            utxo_normal_growth = df[df['Regime']=='NORMAL']['UTXO_Growth'].mean() * 100
+            utxo_shock_growth = df[df['Regime']=='SHOCK']['UTXO_Growth'].mean() * 100
+        else:
+            utxo_normal_growth = 0
+            utxo_shock_growth = 0
+
+        # ==============================================================================
+        #  FORENSIC DEEP DIVE: THE UTXO QUALITY TEST CALCULATIONS
+        # ==============================================================================
+        utxo_html = ""
+        if 'UTXO' in df.columns and 'Realized_Cap' in df.columns:
+            # 1. Regime Correlation Split (Pre/Post 2023)
+            # Ensure index is sorted for slicing
+            df_sorted = df.sort_index()
+            pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
+            post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
+            
+            # Correlation between Friction (TCI) and UTXO Growth
+            # We look for sign inversion: Negative (Exodus) -> Positive (Spam)
+            corr_pre = pre_2023['TCI'].corr(pre_2023['UTXO_Growth'])
+            corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
+            
+            # 2. UTXO Value Dilution (Realized Cap / Count)
+            # Compare Avg UTXO Value during Normal vs Shock
+            # Formula: (Realized Cap / UTXO Count)
+            df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
+            avg_val_normal = df[df['Regime']=='NORMAL']['Val_Per_UTXO'].mean()
+            avg_val_shock = df[df['Regime']=='SHOCK']['Val_Per_UTXO'].mean()
+            
+            dilution_pct = ((avg_val_shock - avg_val_normal) / avg_val_normal) * 100
+            
+            # 3. Zombie Ratio (Volume / UTXO)
+            # Formula: (L1 Volume / UTXO Count) - Does activity keep up with set size?
+            df['Act_Per_UTXO'] = df['Volume'] / df['UTXO'].replace(0, 1)
+            act_normal = df[df['Regime']=='NORMAL']['Act_Per_UTXO'].mean()
+            act_shock = df[df['Regime']=='SHOCK']['Act_Per_UTXO'].mean()
+            
+            zombie_impact = ((act_shock - act_normal) / act_normal) * 100
+
+            # Determine Verdicts
+            verdict_corr = '<strong>STRUCTURAL INVERSION</strong><br>(Exodus &rarr; Spam)' if (corr_pre < 0 and corr_post > 0) else 'Inconclusive/Linear'
+            verdict_dilution = '<strong>DUST CONFIRMED</strong><br>(High Count / Low Value)' if dilution_pct < -5 else 'Healthy Growth'
+            verdict_zombie = '<strong>ACTIVITY COLLAPSE</strong><br>(Ledger Bloat)' if zombie_impact < -10 else 'Active Userbase'
+
+            # Build the Deep Dive HTML Block
+            utxo_html = f"""
+            <h2>6. Deep Dive: UTXO Quality Assurance</h2>
+            <p>Mathematical isolation of "Adoption" vs. "Bloat" using Regime-Split Correlation and Unit Economics.</p>
+            <table>
+                <thead>
+                    <tr><th>Forensic Test</th><th>Result</th><th>Verdict</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Regime Correlation Split</strong><br>
+                            <span style="color:#888; font-size:10px;">Correlation: Friction (TCI) vs. UTXO Growth</span>
+                        </td>
+                        <td class="mono">
+                            Pre-2023: <span class="{'success' if corr_pre < 0 else 'danger'}">{corr_pre:.4f}</span><br>
+                            Post-2023: <span class="{'danger' if corr_post > 0 else 'success'}">{corr_post:.4f}</span>
+                        </td>
+                        <td class="{'danger' if (corr_pre < 0 and corr_post > 0) else 'mono'}">{verdict_corr}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Value Dilution</strong><br>
+                            <span style="color:#888; font-size:10px;">Change in Realized Value per UTXO during Shock</span>
+                        </td>
+                        <td class="mono { 'danger' if dilution_pct < 0 else 'success'}">{dilution_pct:+.2f}%</td>
+                        <td class="{ 'danger' if dilution_pct < -5 else 'success'}">{verdict_dilution}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Zombie Ratio</strong><br>
+                            <span style="color:#888; font-size:10px;">Change in Volume per UTXO during Shock</span>
+                        </td>
+                        <td class="mono { 'danger' if zombie_impact < 0 else 'success'}">{zombie_impact:+.2f}%</td>
+                        <td class="{ 'danger' if zombie_impact < -10 else 'success'}">{verdict_zombie}</td>
+                    </tr>
+                </tbody>
+            </table>
+            """
+        elif 'UTXO' not in df.columns:
+            utxo_html = "<h2>6. Deep Dive: UTXO Quality Assurance</h2><p style='color:#666;'><em>UTXO Data not loaded. Load 'UTXO' file to enable structural quality tests.</em></p>"
+        else:
+             utxo_html = "<h2>6. Deep Dive: UTXO Quality Assurance</h2><p style='color:#666;'><em>Realized Cap data insufficient for unit economic analysis.</em></p>"
+
+
+        # Construct Main HTML
         html = f"""
         <!DOCTYPE html>
         <html>
@@ -532,6 +667,12 @@ class ReportGenerator:
                         <td class="danger">{regime_stats.loc['SHOCK', 'TCI'] / regime_stats.loc['NORMAL', 'TCI']:.1f}x Stress</td>
                     </tr>
                     <tr>
+                        <td>UTXO Set Growth (30d)</td>
+                        <td class="success">{utxo_normal_growth:+.2f}%</td>
+                        <td class="warn">{utxo_shock_growth:+.2f}%</td>
+                        <td>Structural Change</td>
+                    </tr>
+                    <tr>
                         <td>30-Day Velocity Growth</td>
                         <td class="success">{regime_stats.loc['NORMAL', 'Vel_30d_Change']:+.2f}%</td>
                         <td class="danger">{regime_stats.loc['SHOCK', 'Vel_30d_Change']:+.2f}%</td>
@@ -561,7 +702,10 @@ class ReportGenerator:
                 </tbody>
             </table>
 
-            <!-- SECTION 4: EVENT LOG -->
+            <!-- SECTION 4: DEEP DIVE CALCULATIONS (NEW) -->
+            {utxo_html}
+
+            <!-- SECTION 5: EVENT LOG -->
             <h2>4. Forensic Event Log (Aggregated)</h2>
             <table>
                 <thead>
@@ -584,7 +728,7 @@ class ReportGenerator:
                 </tbody>
             </table>
 
-            <!-- SECTION 5: DAILY LOG -->
+            <!-- SECTION 6: DAILY LOG -->
             <h2>5. Forensic Daily Log (Raw Data)</h2>
             <div style="max-height:500px; overflow-y:scroll; border:1px solid #333;">
                 <table>
@@ -615,7 +759,6 @@ class ReportGenerator:
         </html>
         """
         return html
-
 # ==============================================================================
 #  5. GUI SUITE (Merged & Enhanced)
 # ==============================================================================
@@ -640,13 +783,13 @@ class ResearchSuite:
         
         tk.Label(sidebar, text="DATA INGESTION", font=THEME["font_h"], bg=THEME["panel"], fg=THEME["accent"]).pack(pady=(20,10), padx=15, anchor="w")
         
-        inputs = ["Price", "Fees", "Delay", "Volume", "NVT", "MVRV", "LN_Cap", "Min_Fee", "Mempool", "Organic"]
+        inputs = ["Price", "Fees", "Delay", "Volume", "NVT", "MVRV", "LN_Cap", "Min_Fee", "Mempool", "Organic", "UTXO"]
         self.status = {}
         
         for k in inputs:
             row = tk.Frame(sidebar, bg=THEME["panel"])
             row.pack(fill=tk.X, padx=15, pady=4)
-            lbl = k + (" *" if k in ['MVRV', 'LN_Cap', 'Min_Fee'] else "")
+            lbl = k + (" *" if k in ['MVRV', 'LN_Cap', 'Min_Fee', 'UTXO'] else "")
             tk.Label(row, text=lbl, width=12, anchor='w', bg=THEME["panel"], fg="#ccc").pack(side=tk.LEFT)
             self.status[k] = tk.Label(row, text="-", fg="#555", bg=THEME["panel"])
             self.status[k].pack(side=tk.LEFT)
@@ -893,6 +1036,24 @@ class ResearchSuite:
                         ax.grid(False)
                     else: ax.text(0.5, 0.5, "Insufficient Data (>0)", ha='center', color='yellow')
                 else: ax.text(0.5, 0.5, "Mempool/Delay Missing", ha='center', color='red')
+            
+            def p_utxo_health(ax):
+                if 'UTXO' in df.columns:
+                    ax.plot(df.index, df['UTXO'], color=THEME["fg"], lw=1, label="UTXO Set Size")
+                    
+                    # Highlight Bloat (Post-2023 Spam)
+                    ylim = ax.get_ylim()
+                    if 'State_Bloat' in df.columns:
+                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['State_Bloat']==1), color=THEME["l2"], alpha=0.3, label="State Bloat (Ordinals)")
+                    
+                    # Highlight Exodus (Retail Consolidation)
+                    if 'Confirmed_Exodus' in df.columns:
+                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Confirmed_Exodus']==1), color=THEME["shock"], alpha=0.5, label="Retail Exodus")
+                    
+                    ax.set_ylabel("Unspent Output Count")
+                    ax.legend(facecolor=THEME["panel"], labelcolor="white")
+                else:
+                    ax.text(0.5, 0.5, "UTXO Data Missing", ha='center', color='red')
 
             # 4. Execute Creation Loop
             self._log("--- Building Tabs ---")
@@ -902,6 +1063,7 @@ class ResearchSuite:
             create_independent_plot_tab("Shock Timeline", p_timeline)
             create_independent_plot_tab("Insolvency Paradox", p_bootstrap)
             create_independent_plot_tab("Whale Divergence", p_divergence)
+            create_independent_plot_tab("UTXO Structural Health", p_utxo_health)
             create_independent_plot_tab("Phase Hysteresis", p_hysteresis)
             create_independent_plot_tab("Stagflation Matrix", p_stagflation)
             create_independent_plot_tab("Sensitivity Curve", p_sensitivity)
