@@ -1203,14 +1203,16 @@ class ResearchSuite:
     # ==========================================================================
     #  VISUALIZATION SUITE (Strict Mode)
     # ==========================================================================
+# ==========================================================================
+    #  VISUALIZATION SUITE (Strict Mode - Academic Standard)
+    # ==========================================================================
     def _plot_visualizations(self):
             self._log("--- STARTING VISUALIZATION SEQUENCE ---")
             
             df = self.engine.df
             
             if df.empty:
-                self._log("CRITICAL ERROR: Dataset is empty after merging/cleaning.")
-                self._log("Hint: Your files might not have overlapping dates, or 'dropna' removed everything.")
+                self._log("CRITICAL ERROR: Dataset is empty.")
                 return
 
             try:
@@ -1222,11 +1224,10 @@ class ResearchSuite:
             try:
                 for tab_id in self.notebook.tabs():
                     self.notebook.forget(tab_id)
-                self._log("Notebook tabs cleared.")
             except Exception as e:
                 self._log(f"Warning clearing tabs: {e}")
 
-            # 3. Define the Tab Creator with Error Handling
+            # 3. Define the Tab Creator
             def create_independent_plot_tab(title, plot_func):
                 self._log(f"Generating plot: {title}...")
                 try:
@@ -1240,8 +1241,10 @@ class ResearchSuite:
                     # Execute the specific plotting function
                     plot_func(ax)
                     
-                    # Styling
-                    ax.set_title(title, fontsize=14, fontweight='bold', pad=15, color=THEME["fg"])
+                    # --- ACADEMIC FIX: Disable internal titles for publication ---
+                    # ax.set_title(title, fontsize=14, fontweight='bold', pad=15, color=THEME["fg"])
+                    # -------------------------------------------------------------
+                    
                     for spine in ax.spines.values(): spine.set_color("#333")
                     
                     # Embed in Tkinter
@@ -1261,7 +1264,7 @@ class ResearchSuite:
                 except Exception as e:
                     self._log(f" -> FAILED {title}: {str(e)}")
 
-            # --- PLOT DEFINITIONS (Strict Checks for Columns) ---
+            # --- PLOT DEFINITIONS ---
 
             def p_regime_scatter(ax):
                 if 'Regime' not in df.columns or 'TCI' not in df.columns: return
@@ -1284,7 +1287,6 @@ class ResearchSuite:
                     sns.kdeplot(v_shock, ax=ax, color=THEME["shock"], fill=True, alpha=0.2, label="Shock")
                     ax.set_xlabel("Velocity Growth Probability")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
-                else: ax.text(0.5, 0.5, "Insufficient Data for PDF", ha='center', color='yellow')
 
             def p_damage_box(ax):
                 if 'Vel_30d_Change' not in df.columns: return
@@ -1298,7 +1300,6 @@ class ResearchSuite:
                         patch.set_alpha(0.6)
                     for median in bp['medians']: median.set_color('white')
                     ax.set_ylabel("30-Day Velocity Impact (%)")
-                else: ax.text(0.5, 0.5, "Insufficient Data for Box Plot", ha='center', color='yellow')
 
             def p_timeline(ax):
                 if 'Velocity' not in df.columns: return
@@ -1311,9 +1312,9 @@ class ResearchSuite:
                 if 'Insolvency' not in df.columns: return
                 plot_data = df['Insolvency'].replace(0, 0.0001)
                 ax.plot(df.index, plot_data, color=THEME["warn"], lw=1)
-                ax.axhline(self.engine.insol_thresh, color=THEME["shock"], linestyle="--", label=f"Insolvency ({self.engine.insol_lbl})")
+                ax.axhline(self.engine.insol_thresh, color=THEME["shock"], linestyle="--", label=f"Exclusion Threshold")
                 ax.set_yscale('log')
-                ax.set_ylabel(f"Cost ({self.engine.insol_lbl})")
+                ax.set_ylabel(f"Cost Burden (%)")
                 ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
             def p_divergence(ax):
@@ -1322,7 +1323,6 @@ class ResearchSuite:
                     ax.fill_between(df.index, 0, df['Div_Score'], where=(df['Div_Score'] <= 0), color=THEME["safe"], alpha=0.3, label="Organic")
                     ax.set_ylabel("Z-Score Divergence")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
-                else: ax.text(0.5, 0.5, "Volume/Organic Data Missing", ha='center')
 
             def p_hysteresis(ax):
                 if 'TCI_Log' not in df.columns or 'Vel_Log' not in df.columns: return
@@ -1336,8 +1336,6 @@ class ResearchSuite:
                     cbar = ax.figure.colorbar(points, ax=ax)
                     cbar.set_label("Time")
                     plt.setp(plt.getp(cbar.ax.axes, 'yticklabels'), color='white')
-                else:
-                    ax.text(0.5, 0.5, "Insufficient Data for Hysteresis", ha='center', color='yellow')
 
             def p_stagflation(ax):
                 if 'State' not in df.columns: return
@@ -1354,7 +1352,6 @@ class ResearchSuite:
                     ax.set_xlabel("Price Momentum (30d %)")
                     ax.set_ylabel("Utility Momentum (30d %)")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
-                else: ax.text(0.5, 0.5, "No State Data", ha='center')
 
             def p_sensitivity(ax):
                 if 'TCI' not in df.columns: return
@@ -1371,7 +1368,6 @@ class ResearchSuite:
                 ax.set_ylabel("Net Damage (%)")
 
             def p_event_horizon(ax):
-                # Hexbin Density Plot
                 if 'Mempool' in df.columns and 'Delay' in df.columns:
                     subset = df[(df['Mempool'] > 0) & (df['Delay'] > 0)]
                     if len(subset) > 10:
@@ -1385,34 +1381,25 @@ class ResearchSuite:
                         ax.axvline(horizon_x, color=THEME["safe"], linestyle="--", alpha=0.5)
                         ax.text(horizon_x, subset['Delay'].max(), " Saturation", color=THEME["safe"], fontsize=8)
                         ax.grid(False)
-                    else: ax.text(0.5, 0.5, "Insufficient Data (>0)", ha='center', color='yellow')
-                else: ax.text(0.5, 0.5, "Mempool/Delay Missing", ha='center', color='red')
             
             def p_utxo_health(ax):
                 if 'UTXO' in df.columns:
                     ax.plot(df.index, df['UTXO'], color=THEME["fg"], lw=1, label="UTXO Set Size")
-                    
-                    # Highlight Bloat (Post-2023 Spam)
                     ylim = ax.get_ylim()
                     if 'State_Bloat' in df.columns:
-                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['State_Bloat']==1), color=THEME["l2"], alpha=0.3, label="State Bloat (Ordinals)")
-                    
-                    # Highlight Exodus (Retail Consolidation)
+                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['State_Bloat']==1), color=THEME["l2"], alpha=0.3, label="Inelastic Expansion")
                     if 'Confirmed_Exodus' in df.columns:
-                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Confirmed_Exodus']==1), color=THEME["shock"], alpha=0.5, label="Retail Exodus")
-                    
+                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Confirmed_Exodus']==1), color=THEME["shock"], alpha=0.5, label="User Contraction")
                     ax.set_ylabel("Unspent Output Count")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
-                else:
-                    ax.text(0.5, 0.5, "UTXO Data Missing", ha='center', color='red')
 
-            # 4. Execute Creation Loop
+            # 4. Execute Creation Loop (RENAMED TO MATCH LATEX)
             self._log("--- Building Tabs ---")
             create_independent_plot_tab("Regime Scatter", p_regime_scatter)
             create_independent_plot_tab("Probability Collapse", p_prob_collapse)
-            create_independent_plot_tab("Damage Assessment", p_damage_box)
+            create_independent_plot_tab("Net Utility Contraction", p_damage_box) # Changed Name
             create_independent_plot_tab("Shock Timeline", p_timeline)
-            create_independent_plot_tab("Insolvency Paradox", p_bootstrap)
+            create_independent_plot_tab("Exclusion Barrier", p_bootstrap) # Changed Name
             create_independent_plot_tab("Whale Divergence", p_divergence)
             create_independent_plot_tab("UTXO Structural Health", p_utxo_health)
             create_independent_plot_tab("Phase Hysteresis", p_hysteresis)
