@@ -14,6 +14,7 @@ from scipy import stats
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 from mpl_toolkits.mplot3d import Axes3D
+
 # Optional Dependency Check
 try:
     from statsmodels.tsa.stattools import grangercausalitytests
@@ -52,153 +53,96 @@ plt.rcParams.update({
 })
 
 # ==============================================================================
-#  1. BULLETPROOF DATA PARSER & GENERATOR
+#  1. DATA PARSER (Strict Mode - No Simulation)
 # ==============================================================================
 class DataHandler:
     """
-    Combines the robust parsing of Code 2 with the rich dummy data generation of Code 1
-    to support all visualization types, now including UTXO Logic.
+    Robust file parser optimized for standard Blockchain data dumps (.json)
+    and specific CSV exports (Lightning Capacity, Min Fees).
     """
     
-    @staticmethod
-    def generate_dummy_data():
-        """
-        Generates synthetic data that models the 'Endogenous Destabilizer' 
-        with L2/Realized Cap logic, Mempool physics, and UTXO Set Dynamics.
-        """
-        dates = pd.date_range(start="2016-01-01", end="2025-11-22", freq='D')
-        n = len(dates)
-        
-        # 1. Market Data & Realized Cap Logic
-        returns = np.random.normal(0.0005, 0.03, n)
-        price = 400 * np.cumprod(1 + returns)
-        mvrv = np.sin(np.linspace(0, 20, n)) + 2.0 + np.random.normal(0, 0.1, n)
-        
-        # 2. Fees & Insolvency
-        base_fee = np.random.lognormal(1, 0.8, n)
-        min_fee = np.ones(n)
-        
-        # 3. UTXO Base Trend (Linear Growth 40M -> 150M)
-        utxo_trend = np.linspace(40000000, 150000000, n)
-        utxo_noise = np.random.normal(0, 500000, n)
-        utxo_count = utxo_trend + utxo_noise
-        
-        # Inject Shocks
-        is_shock = np.zeros(n)
-        for _ in range(12):
-            start = np.random.randint(50, n-100)
-            duration = np.random.randint(14, 60)
-            
-            # Fee Spike
-            base_fee[start:start+duration] *= np.linspace(2, 25, duration)
-            min_fee[start:start+duration] = np.random.uniform(5, 50, duration)
-            is_shock[start:start+duration] = 1
-            
-            # UTXO Logic: Pre-2023 (Consolidation), Post-2023 (Bloat)
-            curr_date = dates[start]
-            if curr_date.year < 2023:
-                # Retail Exodus/Consolidation -> UTXO Count Drops
-                drop_curve = np.linspace(0, -2000000, duration)
-                utxo_count[start:start+duration] += drop_curve
-                # Persist the drop (Hysteresis)
-                utxo_count[start+duration:] -= 2000000
-            else:
-                # Ordinal Bloat -> UTXO Count Explodes
-                bloat_curve = np.linspace(0, 5000000, duration)
-                utxo_count[start:start+duration] += bloat_curve
-                # Persist the bloat
-                utxo_count[start+duration:] += 5000000
-            
-        fees = base_fee
-        
-        # 4. Mempool & Delay (Physical Constraints for Event Horizon Plot)
-        mempool_size = fees * np.random.uniform(50000, 200000, n)
-        delay = (mempool_size / 100000) + np.random.normal(10, 2, n)
-        delay = np.maximum(delay, 10)
-        
-        # 5. L2 & Volume Logic
-        ln_cap = np.linspace(0, 5000, n) * (1 + np.random.normal(0, 0.05, n))
-        organic_trend = np.linspace(1000, 50000, n)
-        friction_drag = pd.Series(fees).rolling(30).mean() * 50
-        organic = organic_trend - friction_drag + np.random.normal(0, 500, n)
-        organic = np.maximum(organic, 100)
-        
-        volume = (price * organic * 0.5) + (fees * price * 100)
-        nvt = (price * 19000000) / volume
-
-        df = pd.DataFrame({
-            'Date': dates,
-            'Price': price,
-            'Fees': fees,
-            'Delay': delay,
-            'Volume': volume,
-            'Mempool': mempool_size,
-            'Organic': organic,
-            'NVT': nvt,
-            'LN_Cap': ln_cap,
-            'Min_Fee': min_fee,
-            'MVRV': mvrv,
-            'UTXO': utxo_count
-        })
-        return df.set_index('Date')
-
     @staticmethod
     def parse_file(filepath, hint):
         try:
             ext = os.path.splitext(filepath)[1].lower()
             df = None
 
-            # JSON Handling
+            # JSON Handling (Standard Blockchain.com / charts format)
             if ext == '.json':
                 with open(filepath, 'r') as f:
                     raw = json.load(f)
+                
                 target = raw
+                # Flatten dict if wrapped (e.g. {'market-price': [...]})
                 if isinstance(raw, dict):
+                    # Try to find a key that looks like a list of data
                     for k in raw.keys():
                         if isinstance(raw[k], list):
                             target = raw[k]; break
+                            
                 data = []
                 for item in target:
+                    # Handle standard {x: timestamp, y: value} format
                     ts = item.get('x') or item.get('t') or item.get('timestamp')
                     val = item.get('y') or item.get('v') or item.get('value')
-                    if isinstance(item, list): ts, val = item[0], item[1]
+                    
+                    # Handle list format [timestamp, value]
+                    if isinstance(item, list) and len(item) >= 2: 
+                        ts, val = item[0], item[1]
+                        
                     if ts is not None and val is not None:
                         try:
                             ts = float(ts)
+                            # Auto-detect ms vs seconds
                             if ts > 1e11: ts /= 1000
                             dt = datetime.fromtimestamp(ts, timezone.utc).replace(tzinfo=None)
                             data.append({'Date': dt, 'Value': float(val)})
                         except: pass
                 df = pd.DataFrame(data)
 
-            # CSV Handling
+            # CSV Handling (Optimized for your specific files)
             elif ext == '.csv':
+                # read_csv with flexible separator detection
                 df = pd.read_csv(filepath, sep=None, engine='python')
+                
+                # Normalize columns
                 df.columns = [str(c).strip().lower() for c in df.columns]
-                date_col = next((c for c in df.columns if any(x in c for x in ['date', 'time', 'day', 'ts'])), None)
-                if not date_col: raise ValueError("No Date column found")
+                
+                # 1. Detect Date Column
+                date_candidates = ['date', 'time', 'day', 'created', 'period']
+                date_col = next((c for c in df.columns if any(x in c for x in date_candidates)), None)
+                
+                if not date_col: 
+                    # Fallback: assume first column is date if looks like date
+                    date_col = df.columns[0]
+                
                 df['Date'] = pd.to_datetime(df[date_col], errors='coerce')
                 
-                cols = [c for c in df.columns if c != date_col]
+                # 2. Detect Value Column based on Hint
+                cols = [c for c in df.columns if c != date_col and c != 'date']
                 target_col = None
-                hint_map = {
-                    'ln_cap': ['btc', 'cap', 'amount'], 'fees': ['usd', 'cost', 'fee'],
-                    'price': ['usd', 'val', 'price'], 'min_fee': ['sat', 'vbyte', 'fee'],
-                    'utxo': ['count', 'output', 'utxo']
-                }
-                search_terms = hint_map.get(hint.lower(), ['val', 'usd', 'btc'])
-                for term in search_terms:
-                    target_col = next((c for c in cols if term in c), None)
-                    if target_col: break
-                if not target_col: target_col = cols[-1]
                 
+                # specific mappings for your screenshot files
+                if 'ln_cap' in hint.lower():
+                    # Look for 'capacity', 'btc', 'amount'
+                    target_col = next((c for c in cols if any(x in c for x in ['cap', 'btc', 'total'])), cols[-1])
+                elif 'min_fee' in hint.lower():
+                    # Look for 'fee', 'sat', 'usd'
+                    target_col = next((c for c in cols if 'fee' in c or 'sat' in c), cols[-1])
+                else:
+                    # Default to last column
+                    target_col = cols[-1]
+                
+                # Cleanup formatting (remove commas from numbers like "1,000.00")
                 if df[target_col].dtype == 'object':
                     df[target_col] = df[target_col].astype(str).str.replace(',', '', regex=True)
+                
                 df['Value'] = pd.to_numeric(df[target_col], errors='coerce')
 
             if df is not None and not df.empty:
                 df = df.dropna(subset=['Date', 'Value'])
                 df = df.set_index('Date')
+                # Resample to daily mean to standardize jagged time series
                 df = df[['Value']].resample('D').mean()
                 return df.rename(columns={'Value': hint})
 
@@ -206,52 +150,65 @@ class DataHandler:
             print(f"Parser Error [{hint}]: {e}")
             return None
         return None
-
 # ==============================================================================
-#  2. FORENSIC ENGINE (Advanced Logic + Visualization Support)
+#  2. FORENSIC ENGINE (Strict Analysis)
 # ==============================================================================
 class ForensicEngine:
     def __init__(self, df, threshold_percentile=95.0):
+        # Strict interpolation only for small gaps
         self.df = df.copy().interpolate(method='time').dropna()
         self.threshold_pct = threshold_percentile
-        self._run_pipeline()
+        
+        # Only run pipeline if sufficient data exists
+        if not self.df.empty:
+            self._run_pipeline()
 
     def _run_pipeline(self):
         self._apply_logical_fixes()
         self._calc_tci()
         self._detect_regimes()
         self._calc_impact_metrics()
-        self._calc_divergence() # From Code 1
-        self._calc_utxo_health() # NEW: UTXO Logic
+        self._calc_divergence()
+        self._calc_utxo_health()
         self._calc_phase_state()
 
     def _apply_logical_fixes(self):
-        # 1. Realized Cap (Denominator Fix)
-        supply_est = 19700000
-        if 'Price' in self.df.columns and 'MVRV' in self.df.columns:
-            mcap = self.df['Price'] * supply_est
+        # 1. Realized Cap Logic
+        # Requires: Price, Supply (total-bitcoins.json), and MVRV
+        if 'Price' in self.df.columns and 'Supply' in self.df.columns and 'MVRV' in self.df.columns:
+            # Market Cap = Price * Supply
+            mcap = self.df['Price'] * self.df['Supply']
+            # Realized Cap = Market Cap / MVRV
             self.df['Realized_Cap'] = mcap / self.df['MVRV'].replace(0, 1)
-            self.cap_type = "Realized Cap (Robust)"
-        elif 'Price' in self.df.columns:
-            self.df['Realized_Cap'] = self.df['Price'] * supply_est
-            self.cap_type = "Market Cap (Standard)"
+            self.cap_type = "Realized Cap (Derived)"
+        elif 'Price' in self.df.columns and 'Supply' in self.df.columns:
+            # Fallback to Market Cap if MVRV missing
+            self.df['Realized_Cap'] = self.df['Price'] * self.df['Supply']
+            self.cap_type = "Market Cap (Proxy)"
         else:
-            self.df['Realized_Cap'] = 1e9
-            self.cap_type = "Synthetic"
+            self.df['Realized_Cap'] = np.nan
+            self.cap_type = "Insufficient Data"
 
-        # 2. Velocity (L2 Fix)
+        # 2. Velocity Calculation
         if 'Volume' in self.df.columns:
             self.df['Vol_L1'] = self.df['Volume']
+            
+            # L2 Logic (Lightning_Network_Capacity.csv)
             if 'LN_Cap' in self.df.columns and 'Price' in self.df.columns:
+                # Capacity is usually in BTC, convert to USD -> Capacity * Price * Velocity Multiplier (est 10)
                 self.df['Vol_L2'] = self.df['LN_Cap'] * self.df['Price'] * 10.0
                 self.df['Vol_Total'] = self.df['Vol_L1'] + self.df['Vol_L2']
-                self.vol_type = "L1 + L2 (Adjusted)"
+                self.vol_type = "L1 + L2"
             else:
                 self.df['Vol_Total'] = self.df['Vol_L1']
                 self.vol_type = "L1 Only"
-            self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap']
+            
+            if 'Realized_Cap' in self.df.columns and not self.df['Realized_Cap'].isna().all():
+                self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap']
+            else:
+                 self.df['Vel_Robust'] = np.nan
         else:
-            self.df['Vel_Robust'] = np.zeros(len(self.df))
+            self.df['Vel_Robust'] = np.nan
             self.vol_type = "N/A"
 
         if 'NVT' in self.df.columns:
@@ -259,24 +216,27 @@ class ForensicEngine:
         else:
             self.df['Vel_Standard'] = self.df['Vel_Robust']
 
-        self.df['Velocity'] = self.df['Vel_Robust'] if self.df['Vel_Robust'].sum() > 0 else self.df['Vel_Standard']
+        # Prioritize Robust Velocity
+        self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
         self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0) if 'Price' in self.df.columns else 0
 
     def _calc_tci(self):
             # Advanced TCI: (Magnitude + Volatility) * Delay
             if 'Fees' in self.df.columns:
+                # Winsorize extreme outliers
                 capped_fees = self.df['Fees'].clip(upper=self.df['Fees'].quantile(0.99))
                 fee_mean = capped_fees.rolling(30).mean().bfill()
                 fee_std = capped_fees.rolling(30).std().fillna(0)
                 fee_stress = fee_mean + fee_std
                 
+                # Logic for Minimum_Tx_Fee.csv
                 if 'Min_Fee' in self.df.columns:
                     self.df['Insolvency'] = self.df['Min_Fee'] 
                     
-                    # If median > 50, assume Cents or Sats
+                    # Auto-detect if data is in Satoshis or Cents
                     if self.df['Min_Fee'].median() > 50:
                          self.insol_lbl = "Cost (US Cents)" 
-                         self.insol_thresh = 1000.0       # $10.00 = 1000 cents
+                         self.insol_thresh = 1000.0       # $10.00
                     else:
                          self.insol_lbl = "Min Fee (sat/vB)"
                          self.insol_thresh = 5.0
@@ -293,19 +253,36 @@ class ForensicEngine:
             # Alias for Plotting compatibility
             self.df['RCI'] = self.df['Insolvency']
 
-            delay_factor = (self.df['Delay'] / 10.0) if 'Delay' in self.df.columns else 1.0
+            # Incorporate Mempool/Delay Logic
+            if 'Delay' in self.df.columns:
+                 delay_factor = (self.df['Delay'] / 10.0) 
+            elif 'Mempool' in self.df.columns:
+                 # Proxy delay via mempool size if direct delay missing (Mempool / 1MB block space)
+                 delay_factor = (self.df['Mempool'] / 1000000.0) 
+            else:
+                 delay_factor = 1.0
+
             self.df['TCI'] = fee_stress * delay_factor
             self.df['TCI'] = self.df['TCI'].fillna(0)
             
     def _detect_regimes(self):
-        self.thresh_val = self.df['TCI'].quantile(self.threshold_pct / 100.0)
-        self.df['Regime'] = np.where(self.df['TCI'] >= self.thresh_val, 'SHOCK', 'NORMAL')
+        if 'TCI' in self.df.columns:
+            self.thresh_val = self.df['TCI'].quantile(self.threshold_pct / 100.0)
+            self.df['Regime'] = np.where(self.df['TCI'] >= self.thresh_val, 'SHOCK', 'NORMAL')
+        else:
+            self.df['Regime'] = 'NORMAL'
+            self.thresh_val = 0
 
     def _calc_impact_metrics(self):
-        self.df['Vel_Next_30d'] = self.df['Velocity'].shift(-30)
-        self.df['Vel_30d_Change'] = ((self.df['Vel_Next_30d'] - self.df['Velocity']) / self.df['Velocity']) * 100.0
-        self.df['Vel_Mom'] = self.df['Velocity'].pct_change(30)
+        if 'Velocity' in self.df.columns:
+            self.df['Vel_Next_30d'] = self.df['Velocity'].shift(-30)
+            self.df['Vel_30d_Change'] = ((self.df['Vel_Next_30d'] - self.df['Velocity']) / self.df['Velocity']) * 100.0
+            self.df['Vel_Mom'] = self.df['Velocity'].pct_change(30)
+        else:
+            self.df['Vel_30d_Change'] = 0
+            self.df['Vel_Mom'] = 0
         
+        # State Classification
         conditions = [
             (self.df['Price_Mom'] > 0) & (self.df['Vel_Mom'] > 0),
             (self.df['Price_Mom'] > 0) & (self.df['Vel_Mom'] <= 0),
@@ -315,7 +292,7 @@ class ForensicEngine:
         self.df['State'] = np.select(conditions, ['Boom', 'Speculation', 'Stagflation', 'Capitulation'], default='Neutral')
 
     def _calc_divergence(self):
-        # From Code 1: Z-Score Divergence
+        # Organic usually maps to 'n-unique-addresses.json'
         if 'Organic' in self.df.columns and 'Volume' in self.df.columns:
             scaler = StandardScaler()
             vol_z = scaler.fit_transform(self.df[['Volume']].fillna(0))
@@ -323,17 +300,14 @@ class ForensicEngine:
             self.df['Div_Score'] = vol_z - org_z
 
     def _calc_utxo_health(self):
-        # Calculate the rate of change in the UTXO set
         if 'UTXO' in self.df.columns:
             self.df['UTXO_Growth'] = self.df['UTXO'].pct_change(30)
             
-            # THE INSOLVENCY CHECK:
-            # If Fees are High (Shock) AND UTXO Growth is Negative -> Confirmed Retail Exodus
+            # Identify Exodus: High Fees + Negative Growth
             condition_exodus = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] < 0)
             self.df['Confirmed_Exodus'] = np.where(condition_exodus, 1, 0)
             
-            # THE ORDINAL NOISE (2023+):
-            # If Fees are High AND UTXO Growth is Massive -> Spam/Bloat (Not Adoption)
+            # Identify Bloat: High Fees + High Growth
             condition_bloat = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] > 0.05)
             self.df['State_Bloat'] = np.where(condition_bloat, 1, 0)
         else:
@@ -342,22 +316,23 @@ class ForensicEngine:
             self.df['State_Bloat'] = 0
 
     def _calc_phase_state(self):
-        self.df['TCI_Log'] = np.log1p(self.df['TCI'])
-        self.df['Vel_Log'] = np.log1p(self.df['Velocity'])
-
+        if 'TCI' in self.df.columns:
+            self.df['TCI_Log'] = np.log1p(self.df['TCI'])
+        if 'Velocity' in self.df.columns:
+            self.df['Vel_Log'] = np.log1p(self.df['Velocity'])
 # ==============================================================================
 #  3. ECONOMETRIC VALIDATOR
 # ==============================================================================
 class EconometricValidator:
     """
     Implements Appendix A (Mathematical Derivations) and Appendix B (Statistical Tests)
-    Strict implementation for Forensic Report generation.
     """
     
     @staticmethod
     def run_log_log_elasticity(df):
-        # Appendix A.4: Log-Log Elasticity Model
         try:
+            if 'Velocity' not in df.columns or 'TCI' not in df.columns: raise ValueError
+            
             # Shift Velocity back 30 days to align with TCI
             dataset = pd.DataFrame({
                 'ln_V': np.log(df['Velocity'].shift(-30)), 
@@ -379,8 +354,9 @@ class EconometricValidator:
 
     @staticmethod
     def run_threshold_regression(df):
-        # Appendix A.3: Threshold Regression Model
         try:
+            if 'Vel_30d_Change' not in df.columns: raise ValueError
+
             dataset = df.copy().dropna(subset=['Vel_30d_Change'])
             dataset['S_t'] = np.where(dataset['Regime'] == 'SHOCK', 1, 0)
             
@@ -401,8 +377,8 @@ class EconometricValidator:
 
     @staticmethod
     def run_welchs_t_test(df):
-        # Appendix B.1: Welch's t-Test
         try:
+            if 'Vel_30d_Change' not in df.columns: return 0.0, 1.0
             normal = df[df['Regime'] == 'NORMAL']['Vel_30d_Change'].dropna()
             shock = df[df['Regime'] == 'SHOCK']['Vel_30d_Change'].dropna()
             if len(normal) < 2 or len(shock) < 2: return 0.0, 1.0
@@ -413,8 +389,8 @@ class EconometricValidator:
 
     @staticmethod
     def run_bootstrap_ci(df, iterations=5000):
-        # Appendix B.2: Bootstrap Analysis
         try:
+            if 'Vel_30d_Change' not in df.columns: return 0.0, 0.0
             normal = df[df['Regime'] == 'NORMAL']['Vel_30d_Change'].dropna().values
             shock = df[df['Regime'] == 'SHOCK']['Vel_30d_Change'].dropna().values
             
@@ -448,7 +424,7 @@ class ReportGenerator:
         sig_verdict = "SIGNIFICANT (p < 0.05)" if welch[1] < 0.05 else "INCONCLUSIVE (Tail Noise)"
 
         # UTXO Stats (Basic)
-        if 'UTXO' in df.columns:
+        if 'UTXO_Growth' in df.columns:
             utxo_normal_growth = df[df['Regime']=='NORMAL']['UTXO_Growth'].mean() * 100
             utxo_shock_growth = df[df['Regime']=='SHOCK']['UTXO_Growth'].mean() * 100
         else:
@@ -463,35 +439,41 @@ class ReportGenerator:
             # 1. Regime Correlation Split (Pre/Post 2023)
             # Ensure index is sorted for slicing
             df_sorted = df.sort_index()
-            pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
-            post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
+            # We only run the split if data covers this range
+            if df_sorted.index.min() < pd.Timestamp('2023-01-01') < df_sorted.index.max():
+                pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
+                post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
+                
+                corr_pre = pre_2023['TCI'].corr(pre_2023['UTXO_Growth'])
+                corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
+            else:
+                corr_pre = 0; corr_post = 0
             
-            # Correlation between Friction (TCI) and UTXO Growth
-            # We look for sign inversion: Negative (Exodus) -> Positive (Spam)
-            corr_pre = pre_2023['TCI'].corr(pre_2023['UTXO_Growth'])
-            corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
-            
-            # 2. UTXO Value Dilution (Realized Cap / Count)
-            # Compare Avg UTXO Value during Normal vs Shock
-            # Formula: (Realized Cap / UTXO Count)
+            # 2. UTXO Value Dilution
             df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
             avg_val_normal = df[df['Regime']=='NORMAL']['Val_Per_UTXO'].mean()
             avg_val_shock = df[df['Regime']=='SHOCK']['Val_Per_UTXO'].mean()
             
-            dilution_pct = ((avg_val_shock - avg_val_normal) / avg_val_normal) * 100
+            if avg_val_normal != 0:
+                dilution_pct = ((avg_val_shock - avg_val_normal) / avg_val_normal) * 100
+            else:
+                dilution_pct = 0
             
-            # 3. Zombie Ratio (Volume / UTXO)
-            # Formula: (L1 Volume / UTXO Count) - Does activity keep up with set size?
-            df['Act_Per_UTXO'] = df['Volume'] / df['UTXO'].replace(0, 1)
-            act_normal = df[df['Regime']=='NORMAL']['Act_Per_UTXO'].mean()
-            act_shock = df[df['Regime']=='SHOCK']['Act_Per_UTXO'].mean()
-            
-            zombie_impact = ((act_shock - act_normal) / act_normal) * 100
+            # 3. Zombie Ratio
+            if 'Volume' in df.columns:
+                df['Act_Per_UTXO'] = df['Volume'] / df['UTXO'].replace(0, 1)
+                act_normal = df[df['Regime']=='NORMAL']['Act_Per_UTXO'].mean()
+                act_shock = df[df['Regime']=='SHOCK']['Act_Per_UTXO'].mean()
+                if act_normal != 0:
+                    zombie_impact = ((act_shock - act_normal) / act_normal) * 100
+                else: zombie_impact = 0
+            else:
+                zombie_impact = 0
 
             # Determine Verdicts
-            verdict_corr = '<strong>STRUCTURAL INVERSION</strong><br>(Exodus &rarr; Spam)' if (corr_pre < 0 and corr_post > 0) else 'Inconclusive/Linear'
-            verdict_dilution = '<strong>DUST CONFIRMED</strong><br>(High Count / Low Value)' if dilution_pct < -5 else 'Healthy Growth'
-            verdict_zombie = '<strong>ACTIVITY COLLAPSE</strong><br>(Ledger Bloat)' if zombie_impact < -10 else 'Active Userbase'
+            verdict_corr = '<strong>STRUCTURAL INVERSION</strong>' if (corr_pre < 0 and corr_post > 0) else 'Inconclusive/Linear'
+            verdict_dilution = '<strong>DUST CONFIRMED</strong>' if dilution_pct < -5 else 'Healthy Growth'
+            verdict_zombie = '<strong>ACTIVITY COLLAPSE</strong>' if zombie_impact < -10 else 'Active Userbase'
 
             # Build the Deep Dive HTML Block
             utxo_html = f"""
@@ -773,51 +755,105 @@ class ResearchSuite:
         self._init_ui()
 
     def _init_ui(self):
-        main = tk.Frame(self.root, bg=THEME["bg"])
-        main.pack(fill=tk.BOTH, expand=True)
-        
-        # Sidebar
-        sidebar = tk.Frame(main, bg=THEME["panel"], width=320)
-        sidebar.pack(side=tk.LEFT, fill=tk.Y)
-        sidebar.pack_propagate(False)
-        
-        tk.Label(sidebar, text="DATA INGESTION", font=THEME["font_h"], bg=THEME["panel"], fg=THEME["accent"]).pack(pady=(20,10), padx=15, anchor="w")
-        
-        inputs = ["Price", "Fees", "Delay", "Volume", "NVT", "MVRV", "LN_Cap", "Min_Fee", "Mempool", "Organic", "UTXO"]
-        self.status = {}
-        
-        for k in inputs:
-            row = tk.Frame(sidebar, bg=THEME["panel"])
-            row.pack(fill=tk.X, padx=15, pady=4)
-            lbl = k + (" *" if k in ['MVRV', 'LN_Cap', 'Min_Fee', 'UTXO'] else "")
-            tk.Label(row, text=lbl, width=12, anchor='w', bg=THEME["panel"], fg="#ccc").pack(side=tk.LEFT)
-            self.status[k] = tk.Label(row, text="-", fg="#555", bg=THEME["panel"])
-            self.status[k].pack(side=tk.LEFT)
-            tk.Button(row, text="LOAD", command=lambda key=k: self._load(key), bg="#222", fg="white", bd=0, width=6).pack(side=tk.RIGHT)
-        
-        tk.Label(sidebar, text="PARAMETERS", font=THEME["font_h"], bg=THEME["panel"], fg=THEME["accent"]).pack(pady=(30,10), padx=15, anchor="w")
-        tk.Label(sidebar, text="Friction Threshold %", bg=THEME["panel"], fg="#888").pack(padx=15, anchor="w")
-        self.thresh_scale = tk.Scale(sidebar, from_=80, to=99.9, orient=tk.HORIZONTAL, bg=THEME["panel"], fg=THEME["accent"], troughcolor="#222")
-        self.thresh_scale.set(95.0)
-        self.thresh_scale.pack(fill=tk.X, padx=15)
-        
-        self.btn_run = tk.Button(sidebar, text="RUN ANALYSIS", command=self._run, bg=THEME["accent"], fg="black", font=("Segoe UI", 10, "bold"), pady=8)
-        self.btn_run.pack(fill=tk.X, padx=15, pady=(20, 10))
-        tk.Button(sidebar, text="GENERATE DUMMY DATA", command=self._dummy, bg="#333", fg=THEME["safe"]).pack(fill=tk.X, padx=15, pady=5)
-        tk.Button(sidebar, text="EXPORT REPORT", command=self._export, bg=THEME["shock"], fg="white").pack(fill=tk.X, padx=15, pady=5)
-        
-        self.log = scrolledtext.ScrolledText(sidebar, height=10, bg="black", fg="#0f0", font=("Consolas", 8))
-        self.log.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
-        
-        style = ttk.Style()
-        style.theme_use('clam')
-        style.configure("TNotebook", background=THEME["bg"], borderwidth=0)
-        style.configure("TNotebook.Tab", background=THEME["panel"], foreground="#888", padding=[10, 5])
-        style.map("TNotebook.Tab", background=[("selected", THEME["accent"])], foreground=[("selected", "black")])
-        
-        self.notebook = ttk.Notebook(main)
-        self.notebook.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+            main = tk.Frame(self.root, bg=THEME["bg"])
+            main.pack(fill=tk.BOTH, expand=True)
+            
+            # 1. Sidebar Frame
+            sidebar = tk.Frame(main, bg=THEME["panel"], width=320)
+            sidebar.pack(side=tk.LEFT, fill=tk.Y)
+            sidebar.pack_propagate(False) # Strict width enforcement
+            
+            # ---------------------------------------------------------
+            # BOTTOM PANEL: Control Buttons (Packed FIRST to ensure visibility)
+            # ---------------------------------------------------------
+            control_panel = tk.Frame(sidebar, bg=THEME["panel"])
+            control_panel.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
 
+            tk.Label(control_panel, text="PARAMETERS", font=THEME["font_h"], bg=THEME["panel"], fg=THEME["accent"]).pack(anchor="w", pady=(10,5))
+            tk.Label(control_panel, text="Friction Threshold %", bg=THEME["panel"], fg="#888").pack(anchor="w")
+            
+            self.thresh_scale = tk.Scale(control_panel, from_=80, to=99.9, orient=tk.HORIZONTAL, bg=THEME["panel"], fg=THEME["accent"], troughcolor="#222")
+            self.thresh_scale.set(95.0)
+            self.thresh_scale.pack(fill=tk.X, pady=5)
+            
+            self.btn_run = tk.Button(control_panel, text="RUN ANALYSIS", command=self._run, bg=THEME["accent"], fg="black", font=("Segoe UI", 10, "bold"), pady=8)
+            self.btn_run.pack(fill=tk.X, pady=(15, 5))
+            
+            tk.Button(control_panel, text="EXPORT REPORT", command=self._export, bg=THEME["shock"], fg="white").pack(fill=tk.X, pady=5)
+
+            # ---------------------------------------------------------
+            # LOG PANEL: Text Output (Packed SECOND, above buttons)
+            # ---------------------------------------------------------
+            log_frame = tk.Frame(sidebar, bg="black", height=120)
+            log_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 10))
+            log_frame.pack_propagate(False) # Strict height
+
+            self.log = scrolledtext.ScrolledText(log_frame, bg="black", fg="#0f0", font=("Consolas", 8))
+            self.log.pack(fill=tk.BOTH, expand=True)
+
+            # ---------------------------------------------------------
+            # TOP PANEL: Scrollable Input List (Packed LAST to fill remaining space)
+            # ---------------------------------------------------------
+            top_frame = tk.Frame(sidebar, bg=THEME["panel"])
+            top_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+            tk.Label(top_frame, text="DATA INGESTION", font=THEME["font_h"], bg=THEME["panel"], fg=THEME["accent"]).pack(pady=(10,10), anchor="w")
+
+            # Scrollable Canvas
+            canvas = tk.Canvas(top_frame, bg=THEME["panel"], highlightthickness=0)
+            scrollbar = tk.Scrollbar(top_frame, orient="vertical", command=canvas.yview)
+            scrollable_frame = tk.Frame(canvas, bg=THEME["panel"])
+
+            scrollable_frame.bind(
+                "<Configure>",
+                lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            )
+
+            canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            
+            # Inputs List based on your specific files
+            inputs = [
+                "Price",        # market-price.json
+                "Fees",         # fees-usd-per-transaction.json
+                "Delay",        # median-confirmation-time.json
+                "Volume",       # estimated-transaction-volume-usd.json
+                "MVRV",         # market-value-to-realized-value-ratio.json
+                "Supply",       # total-bitcoins.json (CRITICAL)
+                "UTXO",         # utxo-count.json
+                "LN_Cap",       # Lightning_Network_Capacity.csv
+                "Min_Fee",      # Minimum_Tx_Fee.csv
+                "Mempool",      # mempool-size.json
+                "Organic",      # n-unique-addresses.json
+                "NVT",          # nvt.json
+                "Hashrate",     # hash-rate.json
+                "Difficulty"    # mining-difficulty.json
+            ]
+            
+            self.status = {}
+            
+            for k in inputs:
+                row = tk.Frame(scrollable_frame, bg=THEME["panel"])
+                row.pack(fill=tk.X, padx=5, pady=2)
+                
+                lbl = k
+                if k in ['Price', 'Volume', 'Fees', 'Supply', 'MVRV']:
+                    lbl += " *" # Critical files
+                
+                tk.Label(row, text=lbl, width=12, anchor='w', bg=THEME["panel"], fg="#ccc").pack(side=tk.LEFT)
+                self.status[k] = tk.Label(row, text="-", fg="#555", bg=THEME["panel"])
+                self.status[k].pack(side=tk.LEFT)
+                tk.Button(row, text="LOAD", command=lambda key=k: self._load(key), bg="#222", fg="white", bd=0, width=6).pack(side=tk.RIGHT)
+
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+            
+            # ---------------------------------------------------------
+            # RIGHT SIDE: Notebook
+            # ---------------------------------------------------------
+            self.notebook = ttk.Notebook(main)
+            self.notebook.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
     def _log(self, msg):
         self.log.insert(tk.END, f"> {msg}\n")
         self.log.see(tk.END)
@@ -833,11 +869,7 @@ class ResearchSuite:
             else:
                 self._log(f"Failed to load {key}")
 
-    def _dummy(self):
-        df = DataHandler.generate_dummy_data()
-        self.engine = ForensicEngine(df, self.thresh_scale.get())
-        self._log("Synthetic Advanced Data Loaded")
-        self._plot_visualizations()
+    # REMOVED: _dummy() method
 
     def _run(self):
         if not self.file_map: return
@@ -851,24 +883,26 @@ class ResearchSuite:
             self._plot_visualizations()
         except Exception as e:
             self._log(f"Error: {e}")
+            import traceback
+            traceback.print_exc()
 
     # ==========================================================================
-    #  VISUALIZATION SUITE (From Code 1, Adapted for Code 2 Logic)
+    #  VISUALIZATION SUITE (Strict Mode)
     # ==========================================================================
     def _plot_visualizations(self):
             self._log("--- STARTING VISUALIZATION SEQUENCE ---")
             
-            # 1. DEBUG: Check Data Integrity
             df = self.engine.df
-            thresh = self.engine.thresh_val
-            
-            self._log(f"Final Dataset Shape: {df.shape}")
             
             if df.empty:
                 self._log("CRITICAL ERROR: Dataset is empty after merging/cleaning.")
                 self._log("Hint: Your files might not have overlapping dates, or 'dropna' removed everything.")
-                self._log("Try loading fewer files (e.g., just Price and Fees) to test.")
                 return
+
+            try:
+                thresh = self.engine.thresh_val
+            except:
+                thresh = 0
 
             # 2. Reset Notebook
             try:
@@ -912,12 +946,11 @@ class ResearchSuite:
                     
                 except Exception as e:
                     self._log(f" -> FAILED {title}: {str(e)}")
-                    import traceback
-                    traceback.print_exc() # Print full error to terminal console
 
-            # --- PLOT DEFINITIONS (Safe Versions) ---
+            # --- PLOT DEFINITIONS (Strict Checks for Columns) ---
 
             def p_regime_scatter(ax):
+                if 'Regime' not in df.columns or 'TCI' not in df.columns: return
                 norm = df[df['Regime']=='NORMAL']
                 shock = df[df['Regime']=='SHOCK']
                 if len(norm) > 0: ax.scatter(norm['TCI'], norm['Vel_30d_Change'], s=15, color=THEME["safe"], alpha=0.3, label="Normal")
@@ -929,6 +962,7 @@ class ResearchSuite:
                 ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
             def p_prob_collapse(ax):
+                if 'Vel_30d_Change' not in df.columns: return
                 v_norm = df[df['Regime']=='NORMAL']['Vel_30d_Change'].dropna()
                 v_shock = df[df['Regime']=='SHOCK']['Vel_30d_Change'].dropna()
                 if len(v_norm) > 1 and len(v_shock) > 1:
@@ -939,6 +973,7 @@ class ResearchSuite:
                 else: ax.text(0.5, 0.5, "Insufficient Data for PDF", ha='center', color='yellow')
 
             def p_damage_box(ax):
+                if 'Vel_30d_Change' not in df.columns: return
                 data = [df[df['Regime']=='NORMAL']['Vel_30d_Change'].dropna(),
                         df[df['Regime']=='SHOCK']['Vel_30d_Change'].dropna()]
                 if len(data[0]) > 0 and len(data[1]) > 0:
@@ -952,13 +987,14 @@ class ResearchSuite:
                 else: ax.text(0.5, 0.5, "Insufficient Data for Box Plot", ha='center', color='yellow')
 
             def p_timeline(ax):
+                if 'Velocity' not in df.columns: return
                 ax.plot(df.index, df['Velocity'], color=THEME["accent"], lw=1, label="Robust Velocity")
                 ylim = ax.get_ylim()
                 ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Regime']=='SHOCK'), color=THEME["shock"], alpha=0.3)
                 ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
             def p_bootstrap(ax):
-                # FIX: Handle zeros for log scale to prevent crash
+                if 'Insolvency' not in df.columns: return
                 plot_data = df['Insolvency'].replace(0, 0.0001)
                 ax.plot(df.index, plot_data, color=THEME["warn"], lw=1)
                 ax.axhline(self.engine.insol_thresh, color=THEME["shock"], linestyle="--", label=f"Insolvency ({self.engine.insol_lbl})")
@@ -975,7 +1011,7 @@ class ResearchSuite:
                 else: ax.text(0.5, 0.5, "Volume/Organic Data Missing", ha='center')
 
             def p_hysteresis(ax):
-                # FIX: Drop NaNs from rolling window so color array matches geometry length
+                if 'TCI_Log' not in df.columns or 'Vel_Log' not in df.columns: return
                 df_plot = df[['TCI_Log', 'Vel_Log']].rolling(14).mean().dropna()
                 if not df_plot.empty:
                     x = df_plot['TCI_Log']
@@ -990,6 +1026,7 @@ class ResearchSuite:
                     ax.text(0.5, 0.5, "Insufficient Data for Hysteresis", ha='center', color='yellow')
 
             def p_stagflation(ax):
+                if 'State' not in df.columns: return
                 colors = {'Boom':THEME["safe"], 'Speculation':THEME["warn"], 'Stagflation':"#b00b69", 'Capitulation':THEME["shock"]}
                 found = False
                 for state, col in colors.items():
@@ -1000,13 +1037,13 @@ class ResearchSuite:
                 if found:
                     ax.axhline(0, c='white', alpha=0.3, ls='--')
                     ax.axvline(0, c='white', alpha=0.3, ls='--')
-                    # FIX: Added Labels
                     ax.set_xlabel("Price Momentum (30d %)")
                     ax.set_ylabel("Utility Momentum (30d %)")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
                 else: ax.text(0.5, 0.5, "No State Data", ha='center')
 
             def p_sensitivity(ax):
+                if 'TCI' not in df.columns: return
                 pcts = range(80, 100)
                 net_damage = []
                 for p in pcts:
@@ -1079,6 +1116,10 @@ class ResearchSuite:
             # ==============================================================================
             #  1. AGGREGATION ENGINE (Event Grouping)
             # ==============================================================================
+            if 'Regime' not in df.columns:
+                self._log("No Regime data found. Cannot export events.")
+                return
+
             shock_subset = df[df['Regime'] == 'SHOCK'].sort_index()
             events_data = []
             
@@ -1092,18 +1133,27 @@ class ResearchSuite:
                     duration = (end - start).days + 1
                     
                     # Safe pct change calc
-                    p_start, p_end = group.iloc[0]['Price'], group.iloc[-1]['Price']
-                    v_start, v_end = group.iloc[0]['Velocity'], group.iloc[-1]['Velocity']
-                    price_imp = ((p_end - p_start) / p_start) * 100
-                    vel_imp = ((v_end - v_start) / v_start) * 100
+                    p_start = group.iloc[0]['Price'] if 'Price' in group.columns else 0
+                    p_end = group.iloc[-1]['Price'] if 'Price' in group.columns else 0
                     
-                    dom_state = group['State'].mode()[0] if not group['State'].mode().empty else "Unstable"
+                    v_start = group.iloc[0]['Velocity'] if 'Velocity' in group.columns else 0
+                    v_end = group.iloc[-1]['Velocity'] if 'Velocity' in group.columns else 0
+                    
+                    if p_start > 0: price_imp = ((p_end - p_start) / p_start) * 100
+                    else: price_imp = 0
+                    
+                    if v_start > 0: vel_imp = ((v_end - v_start) / v_start) * 100
+                    else: vel_imp = 0
+                    
+                    if 'State' in group.columns:
+                        dom_state = group['State'].mode()[0] if not group['State'].mode().empty else "Unstable"
+                    else: dom_state = "N/A"
                     
                     events_data.append({
                         'Start': start, 'End': end, 'Duration': duration,
                         'Peak_TCI': group['TCI'].max(),
-                        'Avg_Fee': group['Fees'].mean(),
-                        'Avg_Delay': group['Delay'].mean(),
+                        'Avg_Fee': group['Fees'].mean() if 'Fees' in group.columns else 0,
+                        'Avg_Delay': group['Delay'].mean() if 'Delay' in group.columns else 0,
                         'Price_Imp': price_imp,
                         'Vel_Imp': vel_imp,
                         'State': dom_state
@@ -1115,19 +1165,32 @@ class ResearchSuite:
             #  2. STATISTICS & RISK
             # ==============================================================================
             # Regime Comparison
-            regime_stats = df.groupby('Regime')[['Fees', 'Delay', 'TCI', 'Velocity', 'Vel_30d_Change']].mean()
+            cols_to_mean = [c for c in ['Fees', 'Delay', 'TCI', 'Velocity', 'Vel_30d_Change'] if c in df.columns]
+            regime_stats = df.groupby('Regime')[cols_to_mean].mean()
             
             # Insolvency Stats
-            insol_df = df[df['Insolvency'] > self.engine.insol_thresh]
+            if 'Insolvency' in df.columns:
+                insol_df = df[df['Insolvency'] > self.engine.insol_thresh]
+                insol_days = len(insol_df)
+                insol_max = df['Insolvency'].max()
+            else:
+                insol_days = 0
+                insol_max = 0
+                
+            if 'State' in shock_subset.columns:
+                 stag_prob = (shock_subset['State'].value_counts().get('Stagflation', 0) / len(shock_subset) * 100) if not shock_subset.empty else 0
+            else:
+                 stag_prob = 0
+
             insol_stats = {
-                'days': len(insol_df),
-                'max': df['Insolvency'].max(),
-                'stag_prob': (shock_subset['State'].value_counts().get('Stagflation', 0) / len(shock_subset) * 100) if not shock_subset.empty else 0
+                'days': insol_days,
+                'max': insol_max,
+                'stag_prob': stag_prob
             }
 
             # Granger Causality (Volume vs Fees)
             granger_html = ""
-            if STATS_AVAILABLE and 'Organic' in df.columns:
+            if STATS_AVAILABLE and 'Organic' in df.columns and 'Fees' in df.columns:
                 try:
                     d_diff = df[['Organic', 'Fees']].pct_change().dropna().replace([np.inf, -np.inf], 0)
                     res = grangercausalitytests(d_diff, maxlag=[14], verbose=False)
