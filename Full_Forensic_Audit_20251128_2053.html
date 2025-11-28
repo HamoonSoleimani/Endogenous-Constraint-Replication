@@ -1,0 +1,2930 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Forensic Audit: Endogenous Destabilizer</title>
+            <style>
+                :root { --bg: #050505; --panel: #121212; --text: #e0e0e0; --accent: #00f0ff; --danger: #ff003c; --success: #00ff9d; --warn: #ffea00; }
+                body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; font-size: 12px; max-width: 1400px; margin: 0 auto; }
+                h1 { color: var(--accent); border-bottom: 2px solid var(--danger); padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; font-size: 24px; }
+                h2 { color: #fff; background: linear-gradient(90deg, #222, #000); padding: 10px; border-left: 4px solid var(--accent); margin-top: 40px; text-transform: uppercase; font-size: 16px; }
+                h3 { color: #888; margin-top: 5px; font-weight: normal; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+                .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+                .kpi-card { background: var(--panel); padding: 15px; border: 1px solid #333; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+                .kpi-val { font-size: 22px; font-weight: 700; color: #fff; display: block; margin-top: 5px; }
+                .kpi-lbl { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; background: var(--panel); }
+                th { background: #000; color: var(--accent); padding: 12px 8px; text-align: left; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: 600; }
+                td { padding: 8px; border-bottom: 1px solid #2a2a2a; color: #ccc; }
+                tr:nth-child(even) { background-color: #181818; }
+                .danger { color: var(--danger); font-weight: bold; }
+                .success { color: var(--success); font-weight: bold; }
+                .warn { color: var(--warn); font-weight: bold; }
+                .mono { font-family: 'Consolas', monospace; }
+            </style>
+        </head>
+        <body>
+            <h1>Forensic Blockchain Audit: Combined Logic v7.0</h1>
+            <h3>Analysis Engine | Cap Logic: Realized Cap (Derived) | Vol Logic: L1 + L2</h3>
+            <p>Generated: 2025-11-28 20:53:38 | Threshold: Top 10.0%</p>
+
+            <!-- EXECUTIVE DASHBOARD -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Critical Events</span>
+                    <span class="kpi-val" style="color:#ff003c">
+                        11
+                    </span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Net Velocity Damage</span>
+                    <span class="kpi-val danger">
+                        -10.00%
+                    </span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Stagflation Risk</span>
+                    <span class="kpi-val danger">28.2%</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Welch's P-Value</span>
+                    <span class="kpi-val mono" style="font-size:14px; padding-top:8px;">< 0.0001</span>
+                </div>
+            </div>
+
+            <!-- SECTION 1: ECONOMETRIC VALIDATION (APPENDIX A & B) -->
+            <h2>1. Econometric Validation (Appendix A & B)</h2>
+            <p>Mathematical verification of the Endogenous Destabilizer Hypothesis using OLS and Bootstrap methodology.</p>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div>
+                    <h3>Appendix A.3: Threshold Regression</h3>
+                    <table>
+                        <tr><th>Parameter</th><th>Value</th></tr>
+                        <tr><td>Beta 1 (Normal Growth)</td><td class="success mono">10.2564%</td></tr>
+                        <tr><td>Beta 2 (Shock Growth)</td><td class="danger mono">0.2518%</td></tr>
+                        <tr><td><strong>Marginal Impact</strong></td><td class="danger mono"><strong>-10.0046%</strong></td></tr>
+                    </table>
+                </div>
+                <div>
+                    <h3>Appendix A.4: Log-Log Elasticity</h3>
+                    <table>
+                        <tr><th>Parameter</th><th>Value</th></tr>
+                        <tr><td>Elasticity (Beta)</td><td class="mono">0.1765</td></tr>
+                        <tr><td>R-Squared</td><td class="mono">0.2137</td></tr>
+                        <tr><td>P-Value</td><td class="mono">< 0.0001</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Appendix B: Statistical Significance Tests</h3>
+            <table>
+                <thead><tr><th>Test Method</th><th>Result</th><th>Verdict</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td>Welch's t-Test (Unequal Variance)</td>
+                        <td class="mono">t-stat: 3.9429 | p-val: < 0.0001</td>
+                        <td class="success">SIGNIFICANT (p < 0.05)</td>
+                    </tr>
+                    <tr>
+                        <td>Bootstrap 95% CI (5,000 Iterations)</td>
+                        <td class="mono">[-14.93%, -5.07%]</td>
+                        <td>VALID (Non-Zero)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 2: STRUCTURAL REGIME ANALYSIS -->
+            <h2>2. Structural Regime Analysis</h2>
+            <p>Comparative analysis of network physics between 'Normal' operations and 'Shock' friction regimes.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Normal State (Avg)</th>
+                        <th>Shock State (Avg)</th>
+                        <th>Multiplier / Delta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Avg Transaction Fee</td>
+                        <td>$2.34</td>
+                        <td class="danger">$16.36</td>
+                        <td class="warn">7.0x Increase</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Delay (Latency)</td>
+                        <td>8.7 min</td>
+                        <td class="danger">10.6 min</td>
+                        <td class="warn">1.2x Slower</td>
+                    </tr>
+                    <tr>
+                        <td>Transaction Cost Index (TCI)</td>
+                        <td>2.77</td>
+                        <td class="danger">21.66</td>
+                        <td class="danger">7.8x Stress</td>
+                    </tr>
+                    <tr>
+                        <td>UTXO Set Growth (30d)</td>
+                        <td class="success">+0.74%</td>
+                        <td class="warn">+4.55%</td>
+                        <td>Structural Change</td>
+                    </tr>
+                    <tr>
+                        <td>30-Day Velocity Growth</td>
+                        <td class="success">+10.26%</td>
+                        <td class="danger">+0.25%</td>
+                        <td class="danger">CRITICAL FAILURE</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 3: INSOLVENCY ANALYSIS -->
+            <h2>3. Insolvency & Causality</h2>
+            <table>
+                <thead>
+                    <tr><th>Metric</th><th>Value</th><th>Implication</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Insolvency Days</td>
+                        <td class="mono">252 Days</td>
+                        <td>Direct Retail Lockout (>Cost (US Cents))</td>
+                    </tr>
+                    <tr>
+                        <td>Peak Cost Metric</td>
+                        <td class="warn mono">12077.80</td>
+                        <td>Exceeded 1000.0 Threshold</td>
+                    </tr>
+                    <tr><td><strong>Granger Causality (Volume)</strong></td><td class='mono'>Lag 14 | p=0.0000</td><td style='color:#ff003c; font-weight:bold;'>CONFIRMED</td></tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 4: DEEP DIVE CALCULATIONS (NEW) -->
+            
+            <h2>6. Deep Dive: UTXO Quality Assurance</h2>
+            <p>Mathematical isolation of "Adoption" vs. "Bloat" using Regime-Split Correlation and Unit Economics.</p>
+            <table>
+                <thead>
+                    <tr><th>Forensic Test</th><th>Result</th><th>Verdict</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Regime Correlation Split</strong><br>
+                            <span style="color:#888; font-size:10px;">Correlation: Friction (TCI) vs. UTXO Growth</span>
+                        </td>
+                        <td class="mono">
+                            Pre-2023: <span class="danger">0.1254</span><br>
+                            Post-2023: <span class="danger">0.6157</span>
+                        </td>
+                        <td class="mono">Inconclusive/Linear</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Value Dilution</strong><br>
+                            <span style="color:#888; font-size:10px;">Change in Realized Value per UTXO during Shock</span>
+                        </td>
+                        <td class="mono success">+8.03%</td>
+                        <td class="success">Healthy Growth</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Zombie Ratio</strong><br>
+                            <span style="color:#888; font-size:10px;">Change in Volume per UTXO during Shock</span>
+                        </td>
+                        <td class="mono success">+89.75%</td>
+                        <td class="success">Active Userbase</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+
+            <!-- SECTION 5: EVENT LOG -->
+            <h2>4. Forensic Event Log (Aggregated)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Start Date</th><th>End Date</th><th>Duration</th><th>Peak TCI</th><th>Avg Fee</th><th>Price Imp</th><th>Vel Imp</th><th>State</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td class="mono">2021-02-06</td>
+                        <td class="mono">2021-06-06</td>
+                        <td class="mono">121 Days</td>
+                        <td class="danger mono">36.3</td>
+                        <td class="mono">$20.35</td>
+                        <td class="mono danger">-8.43%</td>
+                        <td class="mono danger"><strong>-74.41%</strong></td>
+                        <td>Speculation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2023-12-06</td>
+                        <td class="mono">2024-01-12</td>
+                        <td class="mono">38 Days</td>
+                        <td class="danger mono">34.9</td>
+                        <td class="mono">$17.39</td>
+                        <td class="mono success">+5.38%</td>
+                        <td class="mono danger"><strong>-12.36%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-04-17</td>
+                        <td class="mono">2024-05-19</td>
+                        <td class="mono">33 Days</td>
+                        <td class="danger mono">33.0</td>
+                        <td class="mono">$22.34</td>
+                        <td class="mono success">+6.93%</td>
+                        <td class="mono danger"><strong>-8.56%</strong></td>
+                        <td>Stagflation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-06-08</td>
+                        <td class="mono">2024-07-06</td>
+                        <td class="mono">29 Days</td>
+                        <td class="danger mono">23.6</td>
+                        <td class="mono">$7.68</td>
+                        <td class="mono danger">-14.95%</td>
+                        <td class="mono success"><strong>+56.46%</strong></td>
+                        <td>Capitulation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-01-14</td>
+                        <td class="mono">2024-01-22</td>
+                        <td class="mono">9 Days</td>
+                        <td class="danger mono">21.7</td>
+                        <td class="mono">$9.63</td>
+                        <td class="mono danger">-3.85%</td>
+                        <td class="mono success"><strong>+135.06%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-01-05</td>
+                        <td class="mono">2021-01-21</td>
+                        <td class="mono">17 Days</td>
+                        <td class="danger mono">21.6</td>
+                        <td class="mono">$11.99</td>
+                        <td class="mono success">+1.21%</td>
+                        <td class="mono danger"><strong>-54.62%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2023-05-15</td>
+                        <td class="mono">2023-06-07</td>
+                        <td class="mono">24 Days</td>
+                        <td class="danger mono">19.5</td>
+                        <td class="mono">$4.70</td>
+                        <td class="mono success">+1.13%</td>
+                        <td class="mono success"><strong>+34.38%</strong></td>
+                        <td>Capitulation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-01-28</td>
+                        <td class="mono">2021-02-04</td>
+                        <td class="mono">8 Days</td>
+                        <td class="danger mono">17.7</td>
+                        <td class="mono">$13.96</td>
+                        <td class="mono success">+18.46%</td>
+                        <td class="mono success"><strong>+1.01%</strong></td>
+                        <td>Speculation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2023-05-09</td>
+                        <td class="mono">2023-05-13</td>
+                        <td class="mono">5 Days</td>
+                        <td class="danger mono">17.0</td>
+                        <td class="mono">$15.40</td>
+                        <td class="mono danger">-3.96%</td>
+                        <td class="mono danger"><strong>-35.77%</strong></td>
+                        <td>Stagflation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-06-29</td>
+                        <td class="mono">2021-06-29</td>
+                        <td class="mono">1 Days</td>
+                        <td class="danger mono">15.1</td>
+                        <td class="mono">$8.90</td>
+                        <td class="mono danger">+0.00%</td>
+                        <td class="mono danger"><strong>+0.00%</strong></td>
+                        <td>Stagflation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-06-20</td>
+                        <td class="mono">2021-06-21</td>
+                        <td class="mono">2 Days</td>
+                        <td class="danger mono">15.0</td>
+                        <td class="mono">$5.97</td>
+                        <td class="mono danger">-1.88%</td>
+                        <td class="mono success"><strong>+4.70%</strong></td>
+                        <td>Stagflation</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 6: DAILY LOG -->
+            <h2>5. Forensic Daily Log (Raw Data)</h2>
+            <div style="max-height:500px; overflow-y:scroll; border:1px solid #333;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Fee ($)</th><th>Delay</th><th>TCI</th><th>Velocity</th><th>30d Impact</th><th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td class="mono">2024-07-06</td>
+                            <td class="mono">$1.54</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">16.5</td>
+                            <td class="mono">0.028349</td>
+                            <td class="mono danger">-39.61%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-07-05</td>
+                            <td class="mono">$1.67</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">18.4</td>
+                            <td class="mono">0.032335</td>
+                            <td class="mono danger">-43.61%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-07-04</td>
+                            <td class="mono">$1.73</td>
+                            <td class="mono">11.0m</td>
+                            <td class="mono danger">20.1</td>
+                            <td class="mono">0.028723</td>
+                            <td class="mono danger">-31.88%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-07-03</td>
+                            <td class="mono">$1.79</td>
+                            <td class="mono">11.0m</td>
+                            <td class="mono danger">21.2</td>
+                            <td class="mono">0.025023</td>
+                            <td class="mono danger">-16.53%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-07-02</td>
+                            <td class="mono">$1.85</td>
+                            <td class="mono">10.5m</td>
+                            <td class="mono danger">20.4</td>
+                            <td class="mono">0.021614</td>
+                            <td class="mono danger">-2.63%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-07-01</td>
+                            <td class="mono">$1.91</td>
+                            <td class="mono">10.1m</td>
+                            <td class="mono danger">19.6</td>
+                            <td class="mono">0.017445</td>
+                            <td class="mono success">+23.76%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-30</td>
+                            <td class="mono">$2.10</td>
+                            <td class="mono">9.7m</td>
+                            <td class="mono danger">18.8</td>
+                            <td class="mono">0.017150</td>
+                            <td class="mono success">+26.99%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-29</td>
+                            <td class="mono">$2.29</td>
+                            <td class="mono">9.2m</td>
+                            <td class="mono danger">18.0</td>
+                            <td class="mono">0.016876</td>
+                            <td class="mono success">+30.10%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-28</td>
+                            <td class="mono">$2.49</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">19.4</td>
+                            <td class="mono">0.016690</td>
+                            <td class="mono success">+27.41%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-27</td>
+                            <td class="mono">$2.68</td>
+                            <td class="mono">10.6m</td>
+                            <td class="mono danger">20.8</td>
+                            <td class="mono">0.016500</td>
+                            <td class="mono success">+22.28%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-26</td>
+                            <td class="mono">$2.49</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">22.2</td>
+                            <td class="mono">0.016313</td>
+                            <td class="mono success">+17.88%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-25</td>
+                            <td class="mono">$2.31</td>
+                            <td class="mono">12.1m</td>
+                            <td class="mono danger">23.6</td>
+                            <td class="mono">0.015892</td>
+                            <td class="mono success">+14.93%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-24</td>
+                            <td class="mono">$2.13</td>
+                            <td class="mono">11.7m</td>
+                            <td class="mono danger">22.8</td>
+                            <td class="mono">0.015272</td>
+                            <td class="mono success">+4.77%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-23</td>
+                            <td class="mono">$1.94</td>
+                            <td class="mono">11.2m</td>
+                            <td class="mono danger">22.0</td>
+                            <td class="mono">0.014837</td>
+                            <td class="mono danger">-5.79%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-22</td>
+                            <td class="mono">$2.29</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">21.2</td>
+                            <td class="mono">0.014424</td>
+                            <td class="mono danger">-16.38%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-21</td>
+                            <td class="mono">$2.64</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">20.4</td>
+                            <td class="mono">0.015578</td>
+                            <td class="mono danger">-35.87%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-20</td>
+                            <td class="mono">$2.99</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">19.4</td>
+                            <td class="mono">0.016847</td>
+                            <td class="mono danger">-27.64%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-19</td>
+                            <td class="mono">$3.34</td>
+                            <td class="mono">9.5m</td>
+                            <td class="mono danger">18.5</td>
+                            <td class="mono">0.017954</td>
+                            <td class="mono danger">-19.65%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-18</td>
+                            <td class="mono">$4.15</td>
+                            <td class="mono">9.0m</td>
+                            <td class="mono danger">17.5</td>
+                            <td class="mono">0.019032</td>
+                            <td class="mono danger">-12.36%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-17</td>
+                            <td class="mono">$4.96</td>
+                            <td class="mono">8.5m</td>
+                            <td class="mono danger">16.6</td>
+                            <td class="mono">0.018848</td>
+                            <td class="mono success">+0.58%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-16</td>
+                            <td class="mono">$5.77</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">17.8</td>
+                            <td class="mono">0.018687</td>
+                            <td class="mono danger">-12.01%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-15</td>
+                            <td class="mono">$6.58</td>
+                            <td class="mono">9.8m</td>
+                            <td class="mono danger">19.0</td>
+                            <td class="mono">0.018636</td>
+                            <td class="mono danger">-24.90%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-14</td>
+                            <td class="mono">$6.55</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.018571</td>
+                            <td class="mono danger">-37.41%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-13</td>
+                            <td class="mono">$6.52</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">21.3</td>
+                            <td class="mono">0.018379</td>
+                            <td class="mono danger">-47.66%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-12</td>
+                            <td class="mono">$6.49</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">20.5</td>
+                            <td class="mono">0.018136</td>
+                            <td class="mono danger">-35.31%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-11</td>
+                            <td class="mono">$6.46</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">19.7</td>
+                            <td class="mono">0.017885</td>
+                            <td class="mono danger">-22.17%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-10</td>
+                            <td class="mono">$25.74</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">19.0</td>
+                            <td class="mono">0.017628</td>
+                            <td class="mono danger">-9.41%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-09</td>
+                            <td class="mono">$45.03</td>
+                            <td class="mono">9.6m</td>
+                            <td class="mono danger">17.1</td>
+                            <td class="mono">0.017881</td>
+                            <td class="mono success">+0.58%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-08</td>
+                            <td class="mono">$64.32</td>
+                            <td class="mono">9.5m</td>
+                            <td class="mono danger">15.6</td>
+                            <td class="mono">0.018119</td>
+                            <td class="mono success">+19.24%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-19</td>
+                            <td class="mono">$2.83</td>
+                            <td class="mono">8.0m</td>
+                            <td class="mono danger">15.1</td>
+                            <td class="mono">0.022494</td>
+                            <td class="mono danger">-15.39%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-18</td>
+                            <td class="mono">$2.99</td>
+                            <td class="mono">8.6m</td>
+                            <td class="mono danger">17.5</td>
+                            <td class="mono">0.020817</td>
+                            <td class="mono danger">-9.46%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-17</td>
+                            <td class="mono">$3.04</td>
+                            <td class="mono">9.3m</td>
+                            <td class="mono danger">20.0</td>
+                            <td class="mono">0.019175</td>
+                            <td class="mono danger">-2.55%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-16</td>
+                            <td class="mono">$3.10</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">22.5</td>
+                            <td class="mono">0.018050</td>
+                            <td class="mono success">+3.25%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-15</td>
+                            <td class="mono">$3.15</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">22.9</td>
+                            <td class="mono">0.017186</td>
+                            <td class="mono success">+8.06%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-14</td>
+                            <td class="mono">$3.21</td>
+                            <td class="mono">10.1m</td>
+                            <td class="mono danger">23.5</td>
+                            <td class="mono">0.016310</td>
+                            <td class="mono success">+12.69%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-13</td>
+                            <td class="mono">$3.08</td>
+                            <td class="mono">10.2m</td>
+                            <td class="mono danger">24.1</td>
+                            <td class="mono">0.015446</td>
+                            <td class="mono success">+17.42%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-12</td>
+                            <td class="mono">$2.95</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">24.9</td>
+                            <td class="mono">0.015141</td>
+                            <td class="mono success">+18.13%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-11</td>
+                            <td class="mono">$2.83</td>
+                            <td class="mono">11.0m</td>
+                            <td class="mono danger">27.3</td>
+                            <td class="mono">0.014574</td>
+                            <td class="mono success">+20.96%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-10</td>
+                            <td class="mono">$2.70</td>
+                            <td class="mono">11.6m</td>
+                            <td class="mono danger">29.4</td>
+                            <td class="mono">0.014018</td>
+                            <td class="mono success">+27.56%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-09</td>
+                            <td class="mono">$3.28</td>
+                            <td class="mono">12.3m</td>
+                            <td class="mono danger">31.2</td>
+                            <td class="mono">0.013471</td>
+                            <td class="mono success">+34.50%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-08</td>
+                            <td class="mono">$3.85</td>
+                            <td class="mono">13.0m</td>
+                            <td class="mono danger">33.0</td>
+                            <td class="mono">0.012194</td>
+                            <td class="mono success">+50.46%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-07</td>
+                            <td class="mono">$4.43</td>
+                            <td class="mono">12.1m</td>
+                            <td class="mono danger">30.7</td>
+                            <td class="mono">0.010924</td>
+                            <td class="mono success">+70.15%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-06</td>
+                            <td class="mono">$5.00</td>
+                            <td class="mono">11.2m</td>
+                            <td class="mono danger">28.5</td>
+                            <td class="mono">0.009639</td>
+                            <td class="mono success">+67.24%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-05</td>
+                            <td class="mono">$4.67</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">26.3</td>
+                            <td class="mono">0.008337</td>
+                            <td class="mono success">+62.99%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-04</td>
+                            <td class="mono">$4.34</td>
+                            <td class="mono">9.5m</td>
+                            <td class="mono danger">24.1</td>
+                            <td class="mono">0.011288</td>
+                            <td class="mono danger">-2.12%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-03</td>
+                            <td class="mono">$4.01</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">23.9</td>
+                            <td class="mono">0.014090</td>
+                            <td class="mono danger">-39.94%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-02</td>
+                            <td class="mono">$3.68</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">23.8</td>
+                            <td class="mono">0.016743</td>
+                            <td class="mono danger">-37.83%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-01</td>
+                            <td class="mono">$4.50</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">23.7</td>
+                            <td class="mono">0.019272</td>
+                            <td class="mono danger">-35.36%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-30</td>
+                            <td class="mono">$5.32</td>
+                            <td class="mono">9.3m</td>
+                            <td class="mono danger">23.6</td>
+                            <td class="mono">0.017286</td>
+                            <td class="mono danger">-16.05%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-29</td>
+                            <td class="mono">$6.14</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">23.0</td>
+                            <td class="mono">0.015250</td>
+                            <td class="mono success">+8.78%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-28</td>
+                            <td class="mono">$6.97</td>
+                            <td class="mono">8.8m</td>
+                            <td class="mono danger">22.3</td>
+                            <td class="mono">0.013114</td>
+                            <td class="mono success">+12.78%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-27</td>
+                            <td class="mono">$12.27</td>
+                            <td class="mono">8.6m</td>
+                            <td class="mono danger">21.7</td>
+                            <td class="mono">0.010944</td>
+                            <td class="mono success">+19.05%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-26</td>
+                            <td class="mono">$17.58</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">21.0</td>
+                            <td class="mono">0.012852</td>
+                            <td class="mono danger">-13.14%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-25</td>
+                            <td class="mono">$22.89</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">20.8</td>
+                            <td class="mono">0.014749</td>
+                            <td class="mono danger">-37.06%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-24</td>
+                            <td class="mono">$28.20</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">20.4</td>
+                            <td class="mono">0.016763</td>
+                            <td class="mono danger">-21.41%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-23</td>
+                            <td class="mono">$52.91</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">19.5</td>
+                            <td class="mono">0.018799</td>
+                            <td class="mono danger">-8.21%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-22</td>
+                            <td class="mono">$77.62</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">18.7</td>
+                            <td class="mono">0.019556</td>
+                            <td class="mono success">+9.81%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-21</td>
+                            <td class="mono">$102.33</td>
+                            <td class="mono">8.6m</td>
+                            <td class="mono danger">18.3</td>
+                            <td class="mono">0.020547</td>
+                            <td class="mono success">+25.59%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-20</td>
+                            <td class="mono">$127.03</td>
+                            <td class="mono">8.8m</td>
+                            <td class="mono danger">17.9</td>
+                            <td class="mono">0.021551</td>
+                            <td class="mono success">+12.26%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-19</td>
+                            <td class="mono">$98.56</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">17.3</td>
+                            <td class="mono">0.022739</td>
+                            <td class="mono danger">-1.08%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-18</td>
+                            <td class="mono">$70.09</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">16.5</td>
+                            <td class="mono">0.023909</td>
+                            <td class="mono danger">-12.93%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-17</td>
+                            <td class="mono">$41.61</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">15.1</td>
+                            <td class="mono">0.024600</td>
+                            <td class="mono danger">-22.05%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-22</td>
+                            <td class="mono">$8.97</td>
+                            <td class="mono">10.2m</td>
+                            <td class="mono danger">16.3</td>
+                            <td class="mono">0.025591</td>
+                            <td class="mono danger">-25.61%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-21</td>
+                            <td class="mono">$8.49</td>
+                            <td class="mono">11.2m</td>
+                            <td class="mono danger">18.7</td>
+                            <td class="mono">0.025559</td>
+                            <td class="mono danger">-31.63%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-20</td>
+                            <td class="mono">$8.01</td>
+                            <td class="mono">11.2m</td>
+                            <td class="mono danger">19.5</td>
+                            <td class="mono">0.025553</td>
+                            <td class="mono danger">-38.00%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-19</td>
+                            <td class="mono">$7.53</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">20.3</td>
+                            <td class="mono">0.025543</td>
+                            <td class="mono danger">-27.68%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-18</td>
+                            <td class="mono">$8.70</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">21.0</td>
+                            <td class="mono">0.025408</td>
+                            <td class="mono danger">-16.34%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-17</td>
+                            <td class="mono">$9.88</td>
+                            <td class="mono">11.0m</td>
+                            <td class="mono danger">21.7</td>
+                            <td class="mono">0.021699</td>
+                            <td class="mono success">+11.77%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-16</td>
+                            <td class="mono">$11.06</td>
+                            <td class="mono">9.7m</td>
+                            <td class="mono danger">19.8</td>
+                            <td class="mono">0.018142</td>
+                            <td class="mono success">+47.19%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-15</td>
+                            <td class="mono">$12.23</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">17.7</td>
+                            <td class="mono">0.014531</td>
+                            <td class="mono success">+59.03%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-14</td>
+                            <td class="mono">$11.80</td>
+                            <td class="mono">7.0m</td>
+                            <td class="mono danger">15.3</td>
+                            <td class="mono">0.010887</td>
+                            <td class="mono success">+80.00%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-12</td>
+                            <td class="mono">$10.93</td>
+                            <td class="mono">6.5m</td>
+                            <td class="mono danger">15.0</td>
+                            <td class="mono">0.018154</td>
+                            <td class="mono danger">-30.60%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-11</td>
+                            <td class="mono">$10.50</td>
+                            <td class="mono">7.4m</td>
+                            <td class="mono danger">17.1</td>
+                            <td class="mono">0.021717</td>
+                            <td class="mono danger">-36.60%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-10</td>
+                            <td class="mono">$10.29</td>
+                            <td class="mono">8.2m</td>
+                            <td class="mono danger">19.1</td>
+                            <td class="mono">0.024670</td>
+                            <td class="mono danger">-39.20%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-09</td>
+                            <td class="mono">$10.08</td>
+                            <td class="mono">9.0m</td>
+                            <td class="mono danger">21.1</td>
+                            <td class="mono">0.021202</td>
+                            <td class="mono danger">-22.72%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-08</td>
+                            <td class="mono">$9.86</td>
+                            <td class="mono">8.9m</td>
+                            <td class="mono danger">20.7</td>
+                            <td class="mono">0.018428</td>
+                            <td class="mono danger">-2.34%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-07</td>
+                            <td class="mono">$9.65</td>
+                            <td class="mono">8.7m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.015620</td>
+                            <td class="mono success">+1.72%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-06</td>
+                            <td class="mono">$10.44</td>
+                            <td class="mono">8.5m</td>
+                            <td class="mono danger">19.9</td>
+                            <td class="mono">0.013075</td>
+                            <td class="mono success">+3.25%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-05</td>
+                            <td class="mono">$11.22</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">19.7</td>
+                            <td class="mono">0.015113</td>
+                            <td class="mono danger">-24.96%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-04</td>
+                            <td class="mono">$12.00</td>
+                            <td class="mono">9.8m</td>
+                            <td class="mono danger">23.8</td>
+                            <td class="mono">0.017200</td>
+                            <td class="mono danger">-46.55%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-03</td>
+                            <td class="mono">$12.79</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">27.5</td>
+                            <td class="mono">0.019364</td>
+                            <td class="mono danger">-28.20%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-02</td>
+                            <td class="mono">$14.81</td>
+                            <td class="mono">12.8m</td>
+                            <td class="mono danger">31.2</td>
+                            <td class="mono">0.021063</td>
+                            <td class="mono danger">-11.60%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-01</td>
+                            <td class="mono">$16.84</td>
+                            <td class="mono">14.3m</td>
+                            <td class="mono danger">34.9</td>
+                            <td class="mono">0.021501</td>
+                            <td class="mono success">+8.55%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-31</td>
+                            <td class="mono">$18.86</td>
+                            <td class="mono">13.7m</td>
+                            <td class="mono danger">33.7</td>
+                            <td class="mono">0.021586</td>
+                            <td class="mono success">+30.09%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-30</td>
+                            <td class="mono">$20.88</td>
+                            <td class="mono">13.0m</td>
+                            <td class="mono danger">32.2</td>
+                            <td class="mono">0.021658</td>
+                            <td class="mono success">+28.04%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-29</td>
+                            <td class="mono">$18.90</td>
+                            <td class="mono">12.4m</td>
+                            <td class="mono danger">30.6</td>
+                            <td class="mono">0.022229</td>
+                            <td class="mono success">+22.15%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-28</td>
+                            <td class="mono">$16.93</td>
+                            <td class="mono">11.8m</td>
+                            <td class="mono danger">29.0</td>
+                            <td class="mono">0.019519</td>
+                            <td class="mono success">+36.23%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-27</td>
+                            <td class="mono">$14.95</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">25.6</td>
+                            <td class="mono">0.016835</td>
+                            <td class="mono success">+54.60%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-26</td>
+                            <td class="mono">$12.97</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">22.3</td>
+                            <td class="mono">0.014143</td>
+                            <td class="mono success">+85.71%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-25</td>
+                            <td class="mono">$15.41</td>
+                            <td class="mono">7.7m</td>
+                            <td class="mono danger">19.0</td>
+                            <td class="mono">0.011426</td>
+                            <td class="mono success">+127.72%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-24</td>
+                            <td class="mono">$17.86</td>
+                            <td class="mono">6.4m</td>
+                            <td class="mono danger">15.6</td>
+                            <td class="mono">0.012420</td>
+                            <td class="mono success">+107.63%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-23</td>
+                            <td class="mono">$20.30</td>
+                            <td class="mono">7.1m</td>
+                            <td class="mono danger">17.2</td>
+                            <td class="mono">0.013507</td>
+                            <td class="mono success">+89.47%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-22</td>
+                            <td class="mono">$22.75</td>
+                            <td class="mono">7.7m</td>
+                            <td class="mono danger">18.6</td>
+                            <td class="mono">0.014513</td>
+                            <td class="mono success">+76.11%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-21</td>
+                            <td class="mono">$23.37</td>
+                            <td class="mono">8.4m</td>
+                            <td class="mono danger">19.8</td>
+                            <td class="mono">0.015477</td>
+                            <td class="mono success">+65.11%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-20</td>
+                            <td class="mono">$23.99</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">20.9</td>
+                            <td class="mono">0.014275</td>
+                            <td class="mono success">+78.93%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-19</td>
+                            <td class="mono">$24.61</td>
+                            <td class="mono">8.9m</td>
+                            <td class="mono danger">19.9</td>
+                            <td class="mono">0.013037</td>
+                            <td class="mono success">+94.90%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-18</td>
+                            <td class="mono">$25.23</td>
+                            <td class="mono">8.7m</td>
+                            <td class="mono danger">18.9</td>
+                            <td class="mono">0.011798</td>
+                            <td class="mono success">+83.92%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-17</td>
+                            <td class="mono">$25.20</td>
+                            <td class="mono">8.5m</td>
+                            <td class="mono danger">18.0</td>
+                            <td class="mono">0.010571</td>
+                            <td class="mono success">+71.63%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-16</td>
+                            <td class="mono">$25.17</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">17.1</td>
+                            <td class="mono">0.011449</td>
+                            <td class="mono success">+26.92%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-15</td>
+                            <td class="mono">$25.14</td>
+                            <td class="mono">8.8m</td>
+                            <td class="mono danger">17.7</td>
+                            <td class="mono">0.012345</td>
+                            <td class="mono danger">-11.81%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-14</td>
+                            <td class="mono">$25.11</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">18.2</td>
+                            <td class="mono">0.013238</td>
+                            <td class="mono success">+10.24%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-13</td>
+                            <td class="mono">$21.19</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">18.4</td>
+                            <td class="mono">0.014135</td>
+                            <td class="mono success">+28.43%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-12</td>
+                            <td class="mono">$17.27</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">18.7</td>
+                            <td class="mono">0.013732</td>
+                            <td class="mono success">+58.14%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-11</td>
+                            <td class="mono">$13.36</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">18.3</td>
+                            <td class="mono">0.013445</td>
+                            <td class="mono success">+83.48%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-10</td>
+                            <td class="mono">$9.44</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">18.1</td>
+                            <td class="mono">0.013127</td>
+                            <td class="mono success">+61.51%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-09</td>
+                            <td class="mono">$13.93</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">18.0</td>
+                            <td class="mono">0.012806</td>
+                            <td class="mono success">+43.90%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-08</td>
+                            <td class="mono">$18.41</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">17.7</td>
+                            <td class="mono">0.015451</td>
+                            <td class="mono success">+1.09%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-07</td>
+                            <td class="mono">$22.89</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">16.6</td>
+                            <td class="mono">0.018061</td>
+                            <td class="mono danger">-27.61%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-06</td>
+                            <td class="mono">$27.38</td>
+                            <td class="mono">9.5m</td>
+                            <td class="mono danger">15.0</td>
+                            <td class="mono">0.020714</td>
+                            <td class="mono danger">-27.04%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-07</td>
+                            <td class="mono">$4.65</td>
+                            <td class="mono">13.5m</td>
+                            <td class="mono danger">15.5</td>
+                            <td class="mono">0.010942</td>
+                            <td class="mono danger">-13.85%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-06</td>
+                            <td class="mono">$4.44</td>
+                            <td class="mono">12.7m</td>
+                            <td class="mono danger">17.3</td>
+                            <td class="mono">0.011476</td>
+                            <td class="mono danger">-10.38%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-05</td>
+                            <td class="mono">$4.24</td>
+                            <td class="mono">12.0m</td>
+                            <td class="mono danger">18.0</td>
+                            <td class="mono">0.011537</td>
+                            <td class="mono danger">-3.43%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-04</td>
+                            <td class="mono">$4.49</td>
+                            <td class="mono">11.2m</td>
+                            <td class="mono danger">17.6</td>
+                            <td class="mono">0.011545</td>
+                            <td class="mono success">+3.99%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-03</td>
+                            <td class="mono">$4.74</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">16.7</td>
+                            <td class="mono">0.011552</td>
+                            <td class="mono success">+15.88%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-02</td>
+                            <td class="mono">$4.99</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">17.4</td>
+                            <td class="mono">0.011522</td>
+                            <td class="mono success">+28.21%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-06-01</td>
+                            <td class="mono">$5.25</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">18.1</td>
+                            <td class="mono">0.011173</td>
+                            <td class="mono success">+44.91%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-31</td>
+                            <td class="mono">$4.80</td>
+                            <td class="mono">11.7m</td>
+                            <td class="mono danger">18.8</td>
+                            <td class="mono">0.010868</td>
+                            <td class="mono success">+62.02%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-30</td>
+                            <td class="mono">$4.35</td>
+                            <td class="mono">12.1m</td>
+                            <td class="mono danger">19.5</td>
+                            <td class="mono">0.010560</td>
+                            <td class="mono success">+56.66%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-29</td>
+                            <td class="mono">$3.90</td>
+                            <td class="mono">11.6m</td>
+                            <td class="mono danger">18.6</td>
+                            <td class="mono">0.010353</td>
+                            <td class="mono success">+49.44%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-28</td>
+                            <td class="mono">$3.45</td>
+                            <td class="mono">11.0m</td>
+                            <td class="mono danger">17.7</td>
+                            <td class="mono">0.010839</td>
+                            <td class="mono success">+32.82%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-27</td>
+                            <td class="mono">$3.65</td>
+                            <td class="mono">10.5m</td>
+                            <td class="mono danger">16.8</td>
+                            <td class="mono">0.011325</td>
+                            <td class="mono success">+17.67%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-26</td>
+                            <td class="mono">$3.85</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">15.9</td>
+                            <td class="mono">0.011813</td>
+                            <td class="mono success">+18.46%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-25</td>
+                            <td class="mono">$4.05</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">15.9</td>
+                            <td class="mono">0.012177</td>
+                            <td class="mono success">+20.46%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-24</td>
+                            <td class="mono">$4.26</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">15.9</td>
+                            <td class="mono">0.010602</td>
+                            <td class="mono success">+39.95%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-23</td>
+                            <td class="mono">$4.55</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">15.9</td>
+                            <td class="mono">0.009015</td>
+                            <td class="mono success">+69.41%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-22</td>
+                            <td class="mono">$4.84</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">15.9</td>
+                            <td class="mono">0.007386</td>
+                            <td class="mono success">+82.94%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-21</td>
+                            <td class="mono">$5.13</td>
+                            <td class="mono">10.2m</td>
+                            <td class="mono danger">16.2</td>
+                            <td class="mono">0.005753</td>
+                            <td class="mono success">+104.42%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-20</td>
+                            <td class="mono">$5.42</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">16.5</td>
+                            <td class="mono">0.006813</td>
+                            <td class="mono success">+50.95%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-19</td>
+                            <td class="mono">$5.41</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">16.8</td>
+                            <td class="mono">0.007854</td>
+                            <td class="mono success">+9.81%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-18</td>
+                            <td class="mono">$5.39</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">17.1</td>
+                            <td class="mono">0.008890</td>
+                            <td class="mono success">+6.10%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-17</td>
+                            <td class="mono">$5.38</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">16.3</td>
+                            <td class="mono">0.009982</td>
+                            <td class="mono success">+2.65%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-16</td>
+                            <td class="mono">$5.37</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">15.6</td>
+                            <td class="mono">0.009073</td>
+                            <td class="mono success">+23.90%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-15</td>
+                            <td class="mono">$6.28</td>
+                            <td class="mono">9.5m</td>
+                            <td class="mono danger">14.8</td>
+                            <td class="mono">0.008143</td>
+                            <td class="mono success">+48.55%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-13</td>
+                            <td class="mono">$8.10</td>
+                            <td class="mono">9.7m</td>
+                            <td class="mono danger">14.9</td>
+                            <td class="mono">0.006327</td>
+                            <td class="mono success">+70.67%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-12</td>
+                            <td class="mono">$9.02</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">15.8</td>
+                            <td class="mono">0.007187</td>
+                            <td class="mono success">+41.78%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-11</td>
+                            <td class="mono">$14.49</td>
+                            <td class="mono">11.0m</td>
+                            <td class="mono danger">16.6</td>
+                            <td class="mono">0.008057</td>
+                            <td class="mono success">+18.56%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-10</td>
+                            <td class="mono">$19.96</td>
+                            <td class="mono">11.6m</td>
+                            <td class="mono danger">17.0</td>
+                            <td class="mono">0.008943</td>
+                            <td class="mono success">+12.22%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-05-09</td>
+                            <td class="mono">$25.44</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">15.4</td>
+                            <td class="mono">0.009851</td>
+                            <td class="mono success">+6.47%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-29</td>
+                            <td class="mono">$8.90</td>
+                            <td class="mono">19.6m</td>
+                            <td class="mono danger">15.1</td>
+                            <td class="mono">0.010534</td>
+                            <td class="mono success">+36.71%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-21</td>
+                            <td class="mono">$6.38</td>
+                            <td class="mono">13.7m</td>
+                            <td class="mono danger">15.0</td>
+                            <td class="mono">0.014145</td>
+                            <td class="mono danger">-35.90%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-20</td>
+                            <td class="mono">$5.55</td>
+                            <td class="mono">12.7m</td>
+                            <td class="mono danger">14.9</td>
+                            <td class="mono">0.013510</td>
+                            <td class="mono danger">-31.40%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-06</td>
+                            <td class="mono">$5.81</td>
+                            <td class="mono">8.7m</td>
+                            <td class="mono danger">14.9</td>
+                            <td class="mono">0.008602</td>
+                            <td class="mono danger">-11.26%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-05</td>
+                            <td class="mono">$6.38</td>
+                            <td class="mono">8.9m</td>
+                            <td class="mono danger">15.6</td>
+                            <td class="mono">0.007400</td>
+                            <td class="mono danger">-4.01%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-04</td>
+                            <td class="mono">$6.95</td>
+                            <td class="mono">9.0m</td>
+                            <td class="mono danger">16.1</td>
+                            <td class="mono">0.009548</td>
+                            <td class="mono danger">-31.36%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-03</td>
+                            <td class="mono">$7.51</td>
+                            <td class="mono">9.0m</td>
+                            <td class="mono danger">16.6</td>
+                            <td class="mono">0.011676</td>
+                            <td class="mono danger">-49.49%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-02</td>
+                            <td class="mono">$7.44</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">17.0</td>
+                            <td class="mono">0.013784</td>
+                            <td class="mono danger">-48.54%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-06-01</td>
+                            <td class="mono">$7.37</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">17.4</td>
+                            <td class="mono">0.015877</td>
+                            <td class="mono danger">-47.96%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-31</td>
+                            <td class="mono">$7.29</td>
+                            <td class="mono">9.7m</td>
+                            <td class="mono danger">18.8</td>
+                            <td class="mono">0.015936</td>
+                            <td class="mono danger">-40.95%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-30</td>
+                            <td class="mono">$7.22</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">20.3</td>
+                            <td class="mono">0.015984</td>
+                            <td class="mono danger">-34.09%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-29</td>
+                            <td class="mono">$8.73</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">21.9</td>
+                            <td class="mono">0.016039</td>
+                            <td class="mono danger">-30.68%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-28</td>
+                            <td class="mono">$10.24</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">23.7</td>
+                            <td class="mono">0.016096</td>
+                            <td class="mono danger">-27.34%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-27</td>
+                            <td class="mono">$11.74</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">24.2</td>
+                            <td class="mono">0.017326</td>
+                            <td class="mono danger">-29.32%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-26</td>
+                            <td class="mono">$13.25</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">24.6</td>
+                            <td class="mono">0.018579</td>
+                            <td class="mono danger">-31.24%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-25</td>
+                            <td class="mono">$14.23</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">25.1</td>
+                            <td class="mono">0.019848</td>
+                            <td class="mono danger">-35.47%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-24</td>
+                            <td class="mono">$15.20</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">25.4</td>
+                            <td class="mono">0.021140</td>
+                            <td class="mono danger">-39.28%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-23</td>
+                            <td class="mono">$16.18</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">26.5</td>
+                            <td class="mono">0.025096</td>
+                            <td class="mono danger">-46.26%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-22</td>
+                            <td class="mono">$17.16</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">27.6</td>
+                            <td class="mono">0.029194</td>
+                            <td class="mono danger">-51.55%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-21</td>
+                            <td class="mono">$16.22</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">28.7</td>
+                            <td class="mono">0.033435</td>
+                            <td class="mono danger">-59.59%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-20</td>
+                            <td class="mono">$15.28</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">29.8</td>
+                            <td class="mono">0.037812</td>
+                            <td class="mono danger">-66.05%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-19</td>
+                            <td class="mono">$14.34</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">29.5</td>
+                            <td class="mono">0.032180</td>
+                            <td class="mono danger">-62.35%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-18</td>
+                            <td class="mono">$13.41</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">29.2</td>
+                            <td class="mono">0.026784</td>
+                            <td class="mono danger">-59.34%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-17</td>
+                            <td class="mono">$13.51</td>
+                            <td class="mono">10.5m</td>
+                            <td class="mono danger">28.7</td>
+                            <td class="mono">0.021751</td>
+                            <td class="mono danger">-55.85%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-16</td>
+                            <td class="mono">$13.62</td>
+                            <td class="mono">10.2m</td>
+                            <td class="mono danger">28.2</td>
+                            <td class="mono">0.017014</td>
+                            <td class="mono danger">-51.16%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-15</td>
+                            <td class="mono">$13.73</td>
+                            <td class="mono">9.3m</td>
+                            <td class="mono danger">26.1</td>
+                            <td class="mono">0.021371</td>
+                            <td class="mono danger">-67.23%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-14</td>
+                            <td class="mono">$13.84</td>
+                            <td class="mono">8.4m</td>
+                            <td class="mono danger">23.8</td>
+                            <td class="mono">0.025559</td>
+                            <td class="mono danger">-77.82%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-13</td>
+                            <td class="mono">$15.18</td>
+                            <td class="mono">7.6m</td>
+                            <td class="mono danger">21.5</td>
+                            <td class="mono">0.030153</td>
+                            <td class="mono danger">-75.76%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-12</td>
+                            <td class="mono">$16.53</td>
+                            <td class="mono">6.7m</td>
+                            <td class="mono danger">19.0</td>
+                            <td class="mono">0.034733</td>
+                            <td class="mono danger">-74.28%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-11</td>
+                            <td class="mono">$17.87</td>
+                            <td class="mono">6.8m</td>
+                            <td class="mono danger">19.2</td>
+                            <td class="mono">0.030576</td>
+                            <td class="mono danger">-65.55%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-10</td>
+                            <td class="mono">$19.21</td>
+                            <td class="mono">6.9m</td>
+                            <td class="mono danger">19.5</td>
+                            <td class="mono">0.025282</td>
+                            <td class="mono danger">-52.13%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-09</td>
+                            <td class="mono">$19.41</td>
+                            <td class="mono">7.0m</td>
+                            <td class="mono danger">19.9</td>
+                            <td class="mono">0.019892</td>
+                            <td class="mono danger">-44.91%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-08</td>
+                            <td class="mono">$19.61</td>
+                            <td class="mono">7.2m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.014432</td>
+                            <td class="mono danger">-32.19%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-07</td>
+                            <td class="mono">$19.81</td>
+                            <td class="mono">7.2m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.016344</td>
+                            <td class="mono danger">-47.37%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-06</td>
+                            <td class="mono">$20.01</td>
+                            <td class="mono">7.2m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.018208</td>
+                            <td class="mono danger">-59.36%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-05</td>
+                            <td class="mono">$20.15</td>
+                            <td class="mono">7.2m</td>
+                            <td class="mono danger">20.3</td>
+                            <td class="mono">0.020035</td>
+                            <td class="mono danger">-52.34%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-04</td>
+                            <td class="mono">$20.29</td>
+                            <td class="mono">7.2m</td>
+                            <td class="mono danger">20.3</td>
+                            <td class="mono">0.022352</td>
+                            <td class="mono danger">-47.76%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-03</td>
+                            <td class="mono">$20.42</td>
+                            <td class="mono">8.2m</td>
+                            <td class="mono danger">23.3</td>
+                            <td class="mono">0.023230</td>
+                            <td class="mono danger">-40.66%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-02</td>
+                            <td class="mono">$20.56</td>
+                            <td class="mono">9.2m</td>
+                            <td class="mono danger">26.3</td>
+                            <td class="mono">0.024119</td>
+                            <td class="mono danger">-34.17%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-01</td>
+                            <td class="mono">$22.13</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">29.3</td>
+                            <td class="mono">0.025052</td>
+                            <td class="mono danger">-36.39%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-30</td>
+                            <td class="mono">$23.71</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">32.3</td>
+                            <td class="mono">0.025404</td>
+                            <td class="mono danger">-37.08%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-29</td>
+                            <td class="mono">$25.28</td>
+                            <td class="mono">11.8m</td>
+                            <td class="mono danger">33.4</td>
+                            <td class="mono">0.024833</td>
+                            <td class="mono danger">-35.42%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-28</td>
+                            <td class="mono">$26.86</td>
+                            <td class="mono">12.2m</td>
+                            <td class="mono danger">34.5</td>
+                            <td class="mono">0.024258</td>
+                            <td class="mono danger">-33.65%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-27</td>
+                            <td class="mono">$27.40</td>
+                            <td class="mono">12.7m</td>
+                            <td class="mono danger">35.4</td>
+                            <td class="mono">0.023667</td>
+                            <td class="mono danger">-26.79%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-26</td>
+                            <td class="mono">$27.94</td>
+                            <td class="mono">13.1m</td>
+                            <td class="mono danger">36.3</td>
+                            <td class="mono">0.022926</td>
+                            <td class="mono danger">-18.96%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-25</td>
+                            <td class="mono">$28.48</td>
+                            <td class="mono">12.5m</td>
+                            <td class="mono danger">34.2</td>
+                            <td class="mono">0.023102</td>
+                            <td class="mono danger">-14.08%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-24</td>
+                            <td class="mono">$29.02</td>
+                            <td class="mono">11.9m</td>
+                            <td class="mono danger">32.0</td>
+                            <td class="mono">0.023218</td>
+                            <td class="mono danger">-8.95%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-23</td>
+                            <td class="mono">$36.73</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">29.8</td>
+                            <td class="mono">0.023302</td>
+                            <td class="mono success">+7.70%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-22</td>
+                            <td class="mono">$44.44</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">27.6</td>
+                            <td class="mono">0.024603</td>
+                            <td class="mono success">+18.66%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-21</td>
+                            <td class="mono">$52.15</td>
+                            <td class="mono">11.7m</td>
+                            <td class="mono danger">29.6</td>
+                            <td class="mono">0.026994</td>
+                            <td class="mono success">+23.86%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-20</td>
+                            <td class="mono">$59.86</td>
+                            <td class="mono">12.7m</td>
+                            <td class="mono danger">31.5</td>
+                            <td class="mono">0.029389</td>
+                            <td class="mono success">+28.66%</td>
+                            <td>Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-19</td>
+                            <td class="mono">$54.74</td>
+                            <td class="mono">13.8m</td>
+                            <td class="mono danger">33.2</td>
+                            <td class="mono">0.031803</td>
+                            <td class="mono success">+1.19%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-18</td>
+                            <td class="mono">$49.63</td>
+                            <td class="mono">14.8m</td>
+                            <td class="mono danger">34.9</td>
+                            <td class="mono">0.034298</td>
+                            <td class="mono danger">-21.91%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-17</td>
+                            <td class="mono">$44.51</td>
+                            <td class="mono">13.8m</td>
+                            <td class="mono danger">31.9</td>
+                            <td class="mono">0.033230</td>
+                            <td class="mono danger">-34.55%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-16</td>
+                            <td class="mono">$39.39</td>
+                            <td class="mono">12.9m</td>
+                            <td class="mono danger">29.0</td>
+                            <td class="mono">0.032095</td>
+                            <td class="mono danger">-46.99%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-15</td>
+                            <td class="mono">$34.28</td>
+                            <td class="mono">11.9m</td>
+                            <td class="mono danger">26.1</td>
+                            <td class="mono">0.030899</td>
+                            <td class="mono danger">-30.84%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-14</td>
+                            <td class="mono">$29.17</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">23.3</td>
+                            <td class="mono">0.029641</td>
+                            <td class="mono danger">-13.77%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-13</td>
+                            <td class="mono">$24.06</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">22.4</td>
+                            <td class="mono">0.027429</td>
+                            <td class="mono success">+9.93%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-12</td>
+                            <td class="mono">$18.95</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">22.0</td>
+                            <td class="mono">0.025174</td>
+                            <td class="mono success">+37.98%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-11</td>
+                            <td class="mono">$18.92</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">22.1</td>
+                            <td class="mono">0.022890</td>
+                            <td class="mono success">+33.58%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-10</td>
+                            <td class="mono">$18.88</td>
+                            <td class="mono">10.6m</td>
+                            <td class="mono danger">22.1</td>
+                            <td class="mono">0.020669</td>
+                            <td class="mono success">+22.32%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-09</td>
+                            <td class="mono">$18.84</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">21.9</td>
+                            <td class="mono">0.024447</td>
+                            <td class="mono danger">-18.63%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-08</td>
+                            <td class="mono">$18.80</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">21.7</td>
+                            <td class="mono">0.028163</td>
+                            <td class="mono danger">-48.75%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-07</td>
+                            <td class="mono">$18.05</td>
+                            <td class="mono">10.1m</td>
+                            <td class="mono danger">21.3</td>
+                            <td class="mono">0.031799</td>
+                            <td class="mono danger">-48.60%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-06</td>
+                            <td class="mono">$17.29</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">21.0</td>
+                            <td class="mono">0.035930</td>
+                            <td class="mono danger">-49.32%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-05</td>
+                            <td class="mono">$16.53</td>
+                            <td class="mono">10.4m</td>
+                            <td class="mono danger">21.9</td>
+                            <td class="mono">0.032669</td>
+                            <td class="mono danger">-38.67%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-04</td>
+                            <td class="mono">$15.77</td>
+                            <td class="mono">10.9m</td>
+                            <td class="mono danger">22.8</td>
+                            <td class="mono">0.029313</td>
+                            <td class="mono danger">-23.75%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-03</td>
+                            <td class="mono">$16.35</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">23.8</td>
+                            <td class="mono">0.025887</td>
+                            <td class="mono danger">-10.26%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-02</td>
+                            <td class="mono">$16.94</td>
+                            <td class="mono">11.8m</td>
+                            <td class="mono danger">24.8</td>
+                            <td class="mono">0.022168</td>
+                            <td class="mono success">+8.80%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-01</td>
+                            <td class="mono">$17.52</td>
+                            <td class="mono">11.2m</td>
+                            <td class="mono danger">23.7</td>
+                            <td class="mono">0.022524</td>
+                            <td class="mono success">+11.22%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-31</td>
+                            <td class="mono">$18.10</td>
+                            <td class="mono">10.6m</td>
+                            <td class="mono danger">22.5</td>
+                            <td class="mono">0.022892</td>
+                            <td class="mono success">+10.98%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-30</td>
+                            <td class="mono">$16.75</td>
+                            <td class="mono">10.0m</td>
+                            <td class="mono danger">21.2</td>
+                            <td class="mono">0.023272</td>
+                            <td class="mono success">+6.71%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-29</td>
+                            <td class="mono">$15.41</td>
+                            <td class="mono">9.4m</td>
+                            <td class="mono danger">20.0</td>
+                            <td class="mono">0.023162</td>
+                            <td class="mono success">+4.73%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-28</td>
+                            <td class="mono">$14.06</td>
+                            <td class="mono">9.6m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.023673</td>
+                            <td class="mono danger">-0.03%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-27</td>
+                            <td class="mono">$12.72</td>
+                            <td class="mono">9.7m</td>
+                            <td class="mono danger">20.6</td>
+                            <td class="mono">0.024180</td>
+                            <td class="mono danger">-5.18%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-26</td>
+                            <td class="mono">$13.07</td>
+                            <td class="mono">9.8m</td>
+                            <td class="mono danger">21.1</td>
+                            <td class="mono">0.025382</td>
+                            <td class="mono danger">-8.98%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-25</td>
+                            <td class="mono">$13.43</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">22.0</td>
+                            <td class="mono">0.026658</td>
+                            <td class="mono danger">-12.91%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-24</td>
+                            <td class="mono">$13.78</td>
+                            <td class="mono">9.1m</td>
+                            <td class="mono danger">20.9</td>
+                            <td class="mono">0.023109</td>
+                            <td class="mono success">+0.83%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-23</td>
+                            <td class="mono">$14.14</td>
+                            <td class="mono">8.3m</td>
+                            <td class="mono danger">19.6</td>
+                            <td class="mono">0.019688</td>
+                            <td class="mono success">+24.97%</td>
+                            <td>Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-22</td>
+                            <td class="mono">$16.02</td>
+                            <td class="mono">7.5m</td>
+                            <td class="mono danger">18.2</td>
+                            <td class="mono">0.016761</td>
+                            <td class="mono success">+61.05%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-21</td>
+                            <td class="mono">$17.91</td>
+                            <td class="mono">6.7m</td>
+                            <td class="mono danger">16.5</td>
+                            <td class="mono">0.013800</td>
+                            <td class="mono success">+112.96%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-20</td>
+                            <td class="mono">$19.79</td>
+                            <td class="mono">7.7m</td>
+                            <td class="mono danger">19.2</td>
+                            <td class="mono">0.016487</td>
+                            <td class="mono success">+92.90%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-19</td>
+                            <td class="mono">$21.68</td>
+                            <td class="mono">8.7m</td>
+                            <td class="mono danger">21.7</td>
+                            <td class="mono">0.018682</td>
+                            <td class="mono success">+83.59%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-18</td>
+                            <td class="mono">$21.78</td>
+                            <td class="mono">9.7m</td>
+                            <td class="mono danger">24.2</td>
+                            <td class="mono">0.020870</td>
+                            <td class="mono success">+59.22%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-17</td>
+                            <td class="mono">$21.88</td>
+                            <td class="mono">10.6m</td>
+                            <td class="mono danger">26.6</td>
+                            <td class="mono">0.023044</td>
+                            <td class="mono success">+39.28%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-16</td>
+                            <td class="mono">$21.98</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">28.4</td>
+                            <td class="mono">0.022688</td>
+                            <td class="mono success">+36.19%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-15</td>
+                            <td class="mono">$22.09</td>
+                            <td class="mono">12.1m</td>
+                            <td class="mono danger">30.2</td>
+                            <td class="mono">0.022775</td>
+                            <td class="mono success">+30.15%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-14</td>
+                            <td class="mono">$21.95</td>
+                            <td class="mono">12.9m</td>
+                            <td class="mono danger">32.2</td>
+                            <td class="mono">0.022857</td>
+                            <td class="mono success">+20.00%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-13</td>
+                            <td class="mono">$21.81</td>
+                            <td class="mono">13.7m</td>
+                            <td class="mono danger">34.4</td>
+                            <td class="mono">0.022936</td>
+                            <td class="mono success">+9.76%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-12</td>
+                            <td class="mono">$21.67</td>
+                            <td class="mono">12.8m</td>
+                            <td class="mono danger">32.8</td>
+                            <td class="mono">0.024518</td>
+                            <td class="mono danger">-6.64%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-11</td>
+                            <td class="mono">$21.53</td>
+                            <td class="mono">11.9m</td>
+                            <td class="mono danger">30.8</td>
+                            <td class="mono">0.025371</td>
+                            <td class="mono danger">-18.54%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-10</td>
+                            <td class="mono">$19.58</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">28.5</td>
+                            <td class="mono">0.026242</td>
+                            <td class="mono danger">-6.84%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-09</td>
+                            <td class="mono">$17.63</td>
+                            <td class="mono">10.2m</td>
+                            <td class="mono danger">26.3</td>
+                            <td class="mono">0.027083</td>
+                            <td class="mono success">+3.99%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-08</td>
+                            <td class="mono">$15.68</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">27.9</td>
+                            <td class="mono">0.028054</td>
+                            <td class="mono success">+13.35%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-07</td>
+                            <td class="mono">$13.73</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">29.5</td>
+                            <td class="mono">0.029338</td>
+                            <td class="mono success">+22.47%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-06</td>
+                            <td class="mono">$15.32</td>
+                            <td class="mono">12.0m</td>
+                            <td class="mono danger">31.0</td>
+                            <td class="mono">0.030651</td>
+                            <td class="mono success">+6.58%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-05</td>
+                            <td class="mono">$16.91</td>
+                            <td class="mono">12.6m</td>
+                            <td class="mono danger">32.5</td>
+                            <td class="mono">0.031994</td>
+                            <td class="mono danger">-8.38%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-04</td>
+                            <td class="mono">$18.49</td>
+                            <td class="mono">12.3m</td>
+                            <td class="mono danger">31.8</td>
+                            <td class="mono">0.029697</td>
+                            <td class="mono danger">-12.83%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-03</td>
+                            <td class="mono">$20.08</td>
+                            <td class="mono">12.0m</td>
+                            <td class="mono danger">31.0</td>
+                            <td class="mono">0.027380</td>
+                            <td class="mono danger">-19.04%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-02</td>
+                            <td class="mono">$18.89</td>
+                            <td class="mono">11.7m</td>
+                            <td class="mono danger">30.3</td>
+                            <td class="mono">0.025052</td>
+                            <td class="mono danger">-10.09%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-01</td>
+                            <td class="mono">$17.70</td>
+                            <td class="mono">11.5m</td>
+                            <td class="mono danger">29.5</td>
+                            <td class="mono">0.022708</td>
+                            <td class="mono success">+0.81%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-28</td>
+                            <td class="mono">$16.51</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">27.5</td>
+                            <td class="mono">0.024735</td>
+                            <td class="mono danger">-5.92%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-27</td>
+                            <td class="mono">$15.32</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">25.5</td>
+                            <td class="mono">0.026754</td>
+                            <td class="mono danger">-13.43%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-26</td>
+                            <td class="mono">$19.21</td>
+                            <td class="mono">9.2m</td>
+                            <td class="mono danger">23.6</td>
+                            <td class="mono">0.028778</td>
+                            <td class="mono danger">-17.74%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-25</td>
+                            <td class="mono">$23.09</td>
+                            <td class="mono">8.4m</td>
+                            <td class="mono danger">21.6</td>
+                            <td class="mono">0.030805</td>
+                            <td class="mono danger">-21.51%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-24</td>
+                            <td class="mono">$26.97</td>
+                            <td class="mono">8.4m</td>
+                            <td class="mono danger">21.6</td>
+                            <td class="mono">0.031175</td>
+                            <td class="mono danger">-18.58%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-23</td>
+                            <td class="mono">$30.86</td>
+                            <td class="mono">8.5m</td>
+                            <td class="mono danger">21.2</td>
+                            <td class="mono">0.031514</td>
+                            <td class="mono danger">-15.41%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-22</td>
+                            <td class="mono">$29.41</td>
+                            <td class="mono">8.5m</td>
+                            <td class="mono danger">20.7</td>
+                            <td class="mono">0.031822</td>
+                            <td class="mono danger">-27.38%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-21</td>
+                            <td class="mono">$27.96</td>
+                            <td class="mono">8.6m</td>
+                            <td class="mono danger">20.2</td>
+                            <td class="mono">0.032103</td>
+                            <td class="mono danger">-38.67%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-20</td>
+                            <td class="mono">$26.51</td>
+                            <td class="mono">9.2m</td>
+                            <td class="mono danger">21.0</td>
+                            <td class="mono">0.032461</td>
+                            <td class="mono danger">-48.36%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-19</td>
+                            <td class="mono">$25.06</td>
+                            <td class="mono">9.9m</td>
+                            <td class="mono danger">21.7</td>
+                            <td class="mono">0.032847</td>
+                            <td class="mono danger">-57.99%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-18</td>
+                            <td class="mono">$23.52</td>
+                            <td class="mono">10.5m</td>
+                            <td class="mono danger">22.4</td>
+                            <td class="mono">0.033265</td>
+                            <td class="mono danger">-50.44%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-17</td>
+                            <td class="mono">$21.98</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">23.2</td>
+                            <td class="mono">0.033716</td>
+                            <td class="mono danger">-44.59%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-16</td>
+                            <td class="mono">$20.44</td>
+                            <td class="mono">11.3m</td>
+                            <td class="mono danger">23.1</td>
+                            <td class="mono">0.029506</td>
+                            <td class="mono danger">-29.27%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-15</td>
+                            <td class="mono">$18.90</td>
+                            <td class="mono">11.5m</td>
+                            <td class="mono danger">23.0</td>
+                            <td class="mono">0.025309</td>
+                            <td class="mono danger">-8.95%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-14</td>
+                            <td class="mono">$21.30</td>
+                            <td class="mono">11.7m</td>
+                            <td class="mono danger">23.1</td>
+                            <td class="mono">0.021119</td>
+                            <td class="mono success">+7.43%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-13</td>
+                            <td class="mono">$23.71</td>
+                            <td class="mono">11.9m</td>
+                            <td class="mono danger">23.1</td>
+                            <td class="mono">0.016951</td>
+                            <td class="mono success">+34.36%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-12</td>
+                            <td class="mono">$26.11</td>
+                            <td class="mono">11.6m</td>
+                            <td class="mono danger">21.9</td>
+                            <td class="mono">0.024592</td>
+                            <td class="mono danger">-7.06%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-11</td>
+                            <td class="mono">$28.51</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">20.3</td>
+                            <td class="mono">0.032482</td>
+                            <td class="mono danger">-29.39%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-10</td>
+                            <td class="mono">$24.24</td>
+                            <td class="mono">11.1m</td>
+                            <td class="mono danger">18.3</td>
+                            <td class="mono">0.040632</td>
+                            <td class="mono danger">-39.66%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-09</td>
+                            <td class="mono">$19.98</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">16.6</td>
+                            <td class="mono">0.046808</td>
+                            <td class="mono danger">-45.80%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-08</td>
+                            <td class="mono">$15.71</td>
+                            <td class="mono">10.7m</td>
+                            <td class="mono danger">15.6</td>
+                            <td class="mono">0.042515</td>
+                            <td class="mono danger">-38.28%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-07</td>
+                            <td class="mono">$11.45</td>
+                            <td class="mono">10.5m</td>
+                            <td class="mono danger">15.1</td>
+                            <td class="mono">0.038114</td>
+                            <td class="mono danger">-28.94%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-06</td>
+                            <td class="mono">$12.15</td>
+                            <td class="mono">10.3m</td>
+                            <td class="mono danger">14.8</td>
+                            <td class="mono">0.033608</td>
+                            <td class="mono danger">-16.53%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-04</td>
+                            <td class="mono">$13.56</td>
+                            <td class="mono">10.8m</td>
+                            <td class="mono danger">15.4</td>
+                            <td class="mono">0.027673</td>
+                            <td class="mono success">+10.76%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-03</td>
+                            <td class="mono">$14.27</td>
+                            <td class="mono">11.5m</td>
+                            <td class="mono danger">16.2</td>
+                            <td class="mono">0.025873</td>
+                            <td class="mono success">+23.66%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-02</td>
+                            <td class="mono">$14.48</td>
+                            <td class="mono">12.1m</td>
+                            <td class="mono danger">17.0</td>
+                            <td class="mono">0.024895</td>
+                            <td class="mono success">+19.29%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-01</td>
+                            <td class="mono">$14.69</td>
+                            <td class="mono">12.8m</td>
+                            <td class="mono danger">17.7</td>
+                            <td class="mono">0.023840</td>
+                            <td class="mono success">+14.85%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-31</td>
+                            <td class="mono">$14.90</td>
+                            <td class="mono">12.4m</td>
+                            <td class="mono danger">17.0</td>
+                            <td class="mono">0.024951</td>
+                            <td class="mono success">+0.41%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-30</td>
+                            <td class="mono">$15.11</td>
+                            <td class="mono">12.1m</td>
+                            <td class="mono danger">16.2</td>
+                            <td class="mono">0.026119</td>
+                            <td class="mono danger">-13.06%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-29</td>
+                            <td class="mono">$13.26</td>
+                            <td class="mono">11.8m</td>
+                            <td class="mono danger">15.4</td>
+                            <td class="mono">0.026753</td>
+                            <td class="mono danger">-7.54%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-28</td>
+                            <td class="mono">$11.41</td>
+                            <td class="mono">11.5m</td>
+                            <td class="mono danger">14.8</td>
+                            <td class="mono">0.027397</td>
+                            <td class="mono danger">-2.35%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-21</td>
+                            <td class="mono">$10.90</td>
+                            <td class="mono">11.4m</td>
+                            <td class="mono danger">14.6</td>
+                            <td class="mono">0.020294</td>
+                            <td class="mono success">+59.95%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-20</td>
+                            <td class="mono">$10.50</td>
+                            <td class="mono">11.8m</td>
+                            <td class="mono danger">15.1</td>
+                            <td class="mono">0.024001</td>
+                            <td class="mono success">+36.86%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-19</td>
+                            <td class="mono">$10.10</td>
+                            <td class="mono">12.8m</td>
+                            <td class="mono danger">16.4</td>
+                            <td class="mono">0.021931</td>
+                            <td class="mono success">+51.68%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-18</td>
+                            <td class="mono">$9.71</td>
+                            <td class="mono">13.8m</td>
+                            <td class="mono danger">17.8</td>
+                            <td class="mono">0.019673</td>
+                            <td class="mono success">+71.38%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-17</td>
+                            <td class="mono">$11.37</td>
+                            <td class="mono">14.7m</td>
+                            <td class="mono danger">19.1</td>
+                            <td class="mono">0.017142</td>
+                            <td class="mono success">+72.13%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-16</td>
+                            <td class="mono">$13.03</td>
+                            <td class="mono">15.7m</td>
+                            <td class="mono danger">20.5</td>
+                            <td class="mono">0.014460</td>
+                            <td class="mono success">+75.03%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-15</td>
+                            <td class="mono">$14.70</td>
+                            <td class="mono">16.4m</td>
+                            <td class="mono danger">21.2</td>
+                            <td class="mono">0.021049</td>
+                            <td class="mono success">+0.33%</td>
+                            <td>Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-14</td>
+                            <td class="mono">$16.36</td>
+                            <td class="mono">17.0m</td>
+                            <td class="mono danger">21.6</td>
+                            <td class="mono">0.027280</td>
+                            <td class="mono danger">-37.86%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-13</td>
+                            <td class="mono">$15.02</td>
+                            <td class="mono">17.7m</td>
+                            <td class="mono danger">21.5</td>
+                            <td class="mono">0.033597</td>
+                            <td class="mono danger">-26.80%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-12</td>
+                            <td class="mono">$13.67</td>
+                            <td class="mono">18.3m</td>
+                            <td class="mono danger">21.6</td>
+                            <td class="mono">0.040007</td>
+                            <td class="mono danger">-18.81%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-11</td>
+                            <td class="mono">$12.32</td>
+                            <td class="mono">17.6m</td>
+                            <td class="mono danger">20.6</td>
+                            <td class="mono">0.040752</td>
+                            <td class="mono danger">-0.30%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-10</td>
+                            <td class="mono">$10.98</td>
+                            <td class="mono">17.0m</td>
+                            <td class="mono danger">19.7</td>
+                            <td class="mono">0.042471</td>
+                            <td class="mono success">+10.21%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-09</td>
+                            <td class="mono">$11.05</td>
+                            <td class="mono">16.3m</td>
+                            <td class="mono danger">18.8</td>
+                            <td class="mono">0.044162</td>
+                            <td class="mono danger">-3.73%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-08</td>
+                            <td class="mono">$11.12</td>
+                            <td class="mono">15.6m</td>
+                            <td class="mono danger">17.8</td>
+                            <td class="mono">0.045850</td>
+                            <td class="mono danger">-16.87%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-07</td>
+                            <td class="mono">$11.19</td>
+                            <td class="mono">14.9m</td>
+                            <td class="mono danger">16.8</td>
+                            <td class="mono">0.046940</td>
+                            <td class="mono danger">-28.40%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-06</td>
+                            <td class="mono">$11.27</td>
+                            <td class="mono">14.2m</td>
+                            <td class="mono danger">15.8</td>
+                            <td class="mono">0.045825</td>
+                            <td class="mono danger">-35.69%</td>
+                            <td>Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-05</td>
+                            <td class="mono">$10.55</td>
+                            <td class="mono">13.6m</td>
+                            <td class="mono danger">14.8</td>
+                            <td class="mono">0.044722</td>
+                            <td class="mono danger">-38.12%</td>
+                            <td>Boom</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:50px; border-top:1px solid #333; padding-top:10px; color:#666; text-align:center;">
+                Endogenous Destabilizer Research Suite v7.0 | Generated by ForensicUnit
+            </div>
+        </body>
+        </html>
+        
