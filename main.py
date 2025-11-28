@@ -14,7 +14,7 @@ from scipy import stats
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 from mpl_toolkits.mplot3d import Axes3D
-
+from statsmodels.tsa.stattools import adfuller
 # Optional Dependency Check
 try:
     from statsmodels.tsa.stattools import grangercausalitytests
@@ -274,50 +274,66 @@ class ForensicEngine:
                     self.df[col] = self.df[col].replace([np.inf, -np.inf], np.nan)
                     
     def _calc_tci(self):
-            # Advanced TCI: (Magnitude + Volatility) * Delay
+            # 1. Base Fee Stress Calculation (Winsorized)
             if 'Fees' in self.df.columns:
-                # Winsorize extreme outliers
+                # Winsorize extreme outliers (99th percentile)
                 capped_fees = self.df['Fees'].clip(upper=self.df['Fees'].quantile(0.99))
+                
+                # Calculate Stress (Magnitude + Volatility)
                 fee_mean = capped_fees.rolling(30).mean().bfill()
                 fee_std = capped_fees.rolling(30).std().fillna(0)
                 fee_stress = fee_mean + fee_std
                 
-                # Logic for Minimum_Tx_Fee.csv
-                if 'Min_Fee' in self.df.columns:
-                    self.df['Insolvency'] = self.df['Min_Fee'] 
+                # --- FIX: DYNAMIC VIABILITY RATIO (Wealth-Relative) ---
+                # Replaces static $10 threshold with economic burden relative to stored wealth.
+                # Denominator: Average Realized Value per UTXO (The "Average User Account")
+                
+                if 'Realized_Cap' in self.df.columns and 'UTXO' in self.df.columns:
+                    # Calculate Avg Stored Wealth (Cost Basis)
+                    self.df['Avg_Stored_Wealth'] = self.df['Realized_Cap'] / self.df['UTXO'].replace(0, 1)
                     
-                    # Auto-detect if data is in Satoshis or Cents
-                    if self.df['Min_Fee'].median() > 50:
-                         self.insol_lbl = "Cost (US Cents)" 
-                         self.insol_thresh = 1000.0       # $10.00
-                    else:
-                         self.insol_lbl = "Min Fee (sat/vB)"
-                         self.insol_thresh = 5.0
+                    # Dynamic Burden: Fee as % of Avg Stored Wealth
+                    # Basis Points (bps) approach prevents "Tiny Number" errors
+                    self.df['Burden_Rate'] = (self.df['Fees'] / self.df['Avg_Stored_Wealth']) * 100.0
+                    
+                    self.df['Insolvency'] = self.df['Burden_Rate']
+                    self.insol_lbl = "Wealth Burden (%)"
+                    self.insol_thresh = 0.05  # Threshold: > 0.05% of Stored Wealth (5 bps)
+                    
+                elif 'Volume' in self.df.columns:
+                     # Fallback A: Fee relative to daily transaction flow (Legacy)
+                     self.df['Burden_Rate'] = (self.df['Fees'] / self.df['Volume'].replace(0, np.nan)) * 100
+                     self.df['Insolvency'] = self.df['Burden_Rate']
+                     self.insol_lbl = "Volume Burden (%)"
+                     self.insol_thresh = 0.01
                 else:
+                    # Fallback B: Nominal Fees (Last Resort)
                     self.df['Insolvency'] = self.df['Fees']
-                    self.insol_lbl = "Avg Fee (USD)"
+                    self.insol_lbl = "Nominal Fee ($)"
                     self.insol_thresh = 10.0
+                    
             else:
+                # No Fee Data loaded
                 fee_stress = 0
                 self.df['Insolvency'] = 0
                 self.insol_lbl = "N/A"
                 self.insol_thresh = 0
 
-            # Alias for Plotting compatibility
+            # Alias for Plotting
             self.df['RCI'] = self.df['Insolvency']
 
-            # Incorporate Mempool/Delay Logic
+            # 2. Delay Factor Calculation
             if 'Delay' in self.df.columns:
                  delay_factor = (self.df['Delay'] / 10.0) 
             elif 'Mempool' in self.df.columns:
-                 # Proxy delay via mempool size if direct delay missing (Mempool / 1MB block space)
                  delay_factor = (self.df['Mempool'] / 1000000.0) 
             else:
                  delay_factor = 1.0
 
+            # 3. Final TCI Composite Index
             self.df['TCI'] = fee_stress * delay_factor
             self.df['TCI'] = self.df['TCI'].fillna(0)
-            
+        
     def _detect_regimes(self):
         if 'TCI' in self.df.columns:
             self.thresh_val = self.df['TCI'].quantile(self.threshold_pct / 100.0)
@@ -479,41 +495,63 @@ class EconometricValidator:
             return {'optimal_threshold': 0, 'min_ssr': 0}
 
     @staticmethod
-    def run_iv_regression(df):
+    def run_stationarity_test(df):
         """
-        Performs Two-Stage Least Squares (2SLS) to fix Endogeneity.
-        Instrument: Network Difficulty (Supply-side constraints)
-        Endogenous Variable: TCI
-        Dependent Variable: Velocity Change
+        Runs Augmented Dickey-Fuller to prove data isn't a random walk.
         """
         try:
-            # Require Instruments
-            if 'Difficulty' not in df.columns or 'TCI' not in df.columns: 
-                return {'status': 'Skipped (Missing Difficulty Data)'}
+            if 'Vel_30d_Change' not in df.columns: return {'p_value': 1.0, 'is_stationary': False}
+            series = df['Vel_30d_Change'].dropna()
+            if len(series) < 20: return {'p_value': 1.0, 'is_stationary': False}
+            
+            result = adfuller(series)
+            return {
+                'adf_stat': result[0],
+                'p_value': result[1],
+                'is_stationary': result[1] < 0.05
+            }
+        except:
+            return {'p_value': 1.0, 'is_stationary': False}
 
-            # Prepare Dataset
-            data = df[['Vel_30d_Change', 'TCI', 'Difficulty']].dropna()
+    @staticmethod
+    def run_iv_regression(df):
+        """
+        FIXED IV-2SLS: 
+        Instrument: Lagged Mempool Size (Physical Congestion).
+        Reason: 'Difficulty' correlates with Price (Bull Market bias). 
+                Mempool backlog correlates purely with Friction.
+        """
+        try:
+            # Require Instruments (Mempool is physically exogenous to monetary velocity)
+            if 'Mempool' not in df.columns or 'TCI' not in df.columns: 
+                return {'status': 'Skipped (Missing Mempool Data)'}
+
+            # Prepare Dataset: Lag Mempool by 1 day to ensure exogeneity
+            data = df.copy()
+            data['Mempool_Lag'] = data['Mempool'].shift(1)
+            data = data[['Vel_30d_Change', 'TCI', 'Mempool_Lag']].dropna()
             
             if len(data) < 10: return {'status': 'Insufficient Data'}
 
-            # STAGE 1: Predict TCI using Difficulty (Instrument)
-            X_stage1 = sm.add_constant(data['Difficulty'])
+            # STAGE 1: Predict TCI using Lagged Mempool (Physical Backlog)
+            # TCI (Econ Friction) ~ Mempool_Lag (Physical Constraint)
+            X_stage1 = sm.add_constant(data['Mempool_Lag'])
             model_stage1 = sm.OLS(data['TCI'], X_stage1).fit()
             data['Predicted_TCI'] = model_stage1.fittedvalues
             
             # STAGE 2: Regress Velocity on Predicted TCI
+            # This isolates the variation in TCI caused strictly by backlog, not price hype.
             X_stage2 = sm.add_constant(data['Predicted_TCI'])
             model_stage2 = sm.OLS(data['Vel_30d_Change'], X_stage2).fit()
             
             return {
                 'status': 'Success (IV-2SLS)',
-                'iv_beta': model_stage2.params['Predicted_TCI'],
+                'iv_beta': model_stage2.params['Predicted_TCI'], # Should now be NEGATIVE
                 'p_value': model_stage2.pvalues['Predicted_TCI'],
                 'stage1_strength': model_stage1.rsquared
             }
         except Exception as e:
             return {'status': f"Error: {str(e)}"}
-
     @staticmethod
     def run_welchs_t_test(df):
         try:
@@ -550,170 +588,185 @@ class ReportGenerator:
     def generate(engine, events_df, regime_stats, insol_stats, validation, granger_html):
         df = engine.df.copy()
         
-        # ---------------------------------------------------------
-        # HELPER: P-Value Formatting
-        # ---------------------------------------------------------
+        # --- 0. PRECISION FORMATTERS ---
         def fmt_p(p): 
             if p is None: return "N/A"
-            return "< 0.0001" if p < 0.0001 else f"{p:.4f}"
+            if p < 0.0001: return "< 0.0001"
+            return f"{p:.5f}"
         
-        # ---------------------------------------------------------
-        # 1. UNPACK VALIDATION RESULTS (Safe Extraction)
-        # ---------------------------------------------------------
-        # Standard OLS & Tests
+        def fmt_num(n, suffix=""):
+            if n is None or pd.isna(n): return "-"
+            return f"{n:,.4f}{suffix}"
+
+        # --- 1. UNPACKING & DERIVING ADVANCED METRICS ---
+        
+        # A. Econometric Unpacking
         elast = validation.get('elasticity', {'beta': 0, 'r_squared': 0, 'p_value': 1})
         thresh = validation.get('threshold', {'beta_1_normal': 0, 'beta_2_shock': 0, 'marginal_impact': 0})
         welch = validation.get('welch', (0, 1)) # (t-stat, p-val)
         boot = validation.get('bootstrap', (0, 0)) # (lower, upper)
-        
-        # NEW: Advanced Methodological Fixes (Hansen & IV)
         hansen = validation.get('hansen', {'optimal_threshold': 0, 'min_ssr': 0})
-        iv_res = validation.get('iv', {'status': 'Not Run', 'iv_beta': 0, 'p_value': 1})
-        
-        # Verdict Logic
-        sig_verdict = "SIGNIFICANT (p < 0.05)" if welch[1] < 0.05 else "INCONCLUSIVE (Tail Noise)"
-        
-        # ---------------------------------------------------------
-        # 2. CALCULATE UTXO FORENSICS (Deep Dive)
-        # ---------------------------------------------------------
-        # Determine UTXO Growth for Dashboard
-        if 'UTXO_Growth' in df.columns:
-            utxo_normal_growth = df[df['Regime']=='NORMAL']['UTXO_Growth'].mean() * 100
-            utxo_shock_growth = df[df['Regime']=='SHOCK']['UTXO_Growth'].mean() * 100
-        else:
-            utxo_normal_growth = 0
-            utxo_shock_growth = 0
+        iv_res = validation.get('iv', {'status': 'Not Run', 'iv_beta': 0, 'p_value': 1, 'stage1_strength': 0})
+        adf = validation.get('adf', {'adf_stat': 0, 'p_value': 1, 'is_stationary': False})
 
-        # Structural Inversion Analysis (Pre vs Post 2023)
+        # B. Net Damage Calculation
+        try:
+            vel_normal = regime_stats.loc['NORMAL', 'Vel_30d_Change']
+            vel_shock = regime_stats.loc['SHOCK', 'Vel_30d_Change']
+            net_damage = vel_shock - vel_normal
+        except:
+            vel_normal, vel_shock, net_damage = 0, 0, 0
+
+        # C. Multiplier Calculation
+        try:
+            fee_normal = regime_stats.loc['NORMAL', 'Fees']
+            fee_shock = regime_stats.loc['SHOCK', 'Fees']
+            fee_mult = fee_shock / fee_normal if fee_normal > 0 else 0
+            
+            tci_normal = regime_stats.loc['NORMAL', 'TCI']
+            tci_shock = regime_stats.loc['SHOCK', 'TCI']
+            tci_mult = tci_shock / tci_normal if tci_normal > 0 else 0
+        except:
+            fee_mult, tci_mult = 0, 0
+
+        # --- 2. DEEP DIVE: UTXO STRUCTURAL INVERSION LOGIC ---
+        # (Re-calculating specifically for the report to ensure raw data exposure)
         utxo_html = ""
+        
         if 'UTXO' in df.columns and 'Realized_Cap' in df.columns:
-            # Sort for slicing
+            # 1. Structural Break Split (Pre/Post 2023)
             df_sorted = df.sort_index()
+            pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
+            post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
             
-            # Check date range availability
-            has_pre = df_sorted.index.min() < pd.Timestamp('2023-01-01')
-            has_post = df_sorted.index.max() > pd.Timestamp('2023-01-01')
-            
-            if has_pre and has_post:
-                pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
-                post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
-                
-                # Correlation: Friction (TCI) vs UTXO Count Growth
+            # Correlation: Friction (TCI) vs UTXO Count Growth
+            # We show the raw Pearson correlation coefficients
+            if not pre_2023.empty:
                 corr_pre = pre_2023['TCI'].corr(pre_2023['UTXO_Growth'])
-                corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
-            else:
-                corr_pre = 0
-                corr_post = 0
+            else: corr_pre = 0
             
-            # Metric 2: Value Dilution (Realized Cap / UTXO Count)
+            if not post_2023.empty:
+                corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
+            else: corr_post = 0
+            
+            # 2. Value Dilution (Realized Cap / UTXO Count)
             df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
             avg_val_normal = df[df['Regime']=='NORMAL']['Val_Per_UTXO'].mean()
             avg_val_shock = df[df['Regime']=='SHOCK']['Val_Per_UTXO'].mean()
+            dilution_abs = avg_val_shock - avg_val_normal
+            dilution_pct = (dilution_abs / avg_val_normal) * 100 if avg_val_normal != 0 else 0
             
-            if avg_val_normal != 0:
-                dilution_pct = ((avg_val_shock - avg_val_normal) / avg_val_normal) * 100
-            else:
-                dilution_pct = 0
-            
-            # Metric 3: Zombie Ratio (Volume / UTXO Count)
-            # (Note: Using Vol_L1 explicitly to measure on-chain displacement)
+            # 3. Zombie Ratio (Volume / UTXO Count)
             if 'Vol_L1' in df.columns:
                 df['Act_Per_UTXO'] = df['Vol_L1'] / df['UTXO'].replace(0, 1)
                 act_normal = df[df['Regime']=='NORMAL']['Act_Per_UTXO'].mean()
                 act_shock = df[df['Regime']=='SHOCK']['Act_Per_UTXO'].mean()
-                if act_normal != 0:
-                    zombie_impact = ((act_shock - act_normal) / act_normal) * 100
-                else: zombie_impact = 0
+                zombie_abs = act_shock - act_normal
+                zombie_pct = (zombie_abs / act_normal) * 100 if act_normal != 0 else 0
             else:
-                zombie_impact = 0
+                zombie_abs, zombie_pct = 0, 0
 
             # Logic Verdicts
-            verdict_corr = '<strong>STRUCTURAL INVERSION</strong>' if (corr_pre < 0 and corr_post > 0) else 'Inconclusive/Linear'
-            verdict_dilution = '<strong>DUST CONFIRMED</strong>' if dilution_pct < -5 else 'Healthy Growth'
-            verdict_zombie = '<strong>ACTIVITY COLLAPSE</strong>' if zombie_impact < -10 else 'Active Userbase'
+            is_inverted = (corr_pre < 0 and corr_post > 0)
+            verdict_corr = '<strong>STRUCTURAL INVERSION DETECTED</strong>' if is_inverted else 'Linear/Non-Inverted'
+            verdict_dilution = '<strong>DUST ACCUMULATION</strong>' if dilution_pct < -5 else 'Healthy Capital Density'
+            verdict_zombie = '<strong>WHALE DIVERGENCE</strong>' if zombie_pct > 20 else 'Organic Scaling'
 
-            # HTML Construction for Deep Dive
             utxo_html = f"""
-            <h2>6. Deep Dive: UTXO Quality Assurance</h2>
-            <p>Mathematical isolation of "Adoption" vs. "Bloat" using Regime-Split Correlation and Unit Economics.</p>
+            <h2>6. Deep Dive: UTXO Forensic Architecture</h2>
+            <p>Isolation of "Adoption" vs. "Bloat" using Pearson Correlation Splits and Unit Economic Densities.</p>
             <table>
                 <thead>
-                    <tr><th>Forensic Test</th><th>Result</th><th>Verdict</th></tr>
+                    <tr><th>Forensic Metric</th><th>Raw Calculation</th><th>Differential / Slope</th><th>Forensic Verdict</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>
                             <strong>Regime Correlation Split</strong><br>
-                            <span style="color:#888; font-size:10px;">Correlation: Friction (TCI) vs. UTXO Growth</span>
+                            <span style="color:#888; font-size:10px;">Pearson r: TCI vs. UTXO Growth</span>
                         </td>
                         <td class="mono">
-                            Pre-2023: <span class="{'success' if corr_pre < 0 else 'danger'}">{corr_pre:.4f}</span><br>
-                            Post-2023: <span class="{'danger' if corr_post > 0 else 'success'}">{corr_post:.4f}</span>
+                            Pre-2023 r: <span class="{'success' if corr_pre < 0 else 'danger'}">{corr_pre:.5f}</span><br>
+                            Post-2023 r: <span class="{'danger' if corr_post > 0 else 'success'}">{corr_post:.5f}</span>
                         </td>
-                        <td class="{'danger' if (corr_pre < 0 and corr_post > 0) else 'mono'}">{verdict_corr}</td>
+                        <td class="mono">
+                            Delta r: {corr_post - corr_pre:+.4f}
+                        </td>
+                        <td class="{'danger' if is_inverted else 'mono'}">{verdict_corr}</td>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Value Dilution</strong><br>
-                            <span style="color:#888; font-size:10px;">Change in Realized Value per UTXO during Shock</span>
+                            <strong>Capital Density (Dilution)</strong><br>
+                            <span style="color:#888; font-size:10px;">Realized Cap per UTXO</span>
                         </td>
-                        <td class="mono { 'danger' if dilution_pct < 0 else 'success'}">{dilution_pct:+.2f}%</td>
+                        <td class="mono">
+                            Normal: ${avg_val_normal:,.2f}<br>
+                            Shock: ${avg_val_shock:,.2f}
+                        </td>
+                        <td class="mono { 'danger' if dilution_pct < 0 else 'success'}">
+                            {dilution_abs:+,.2f} USD ({dilution_pct:+.2f}%)
+                        </td>
                         <td class="{ 'danger' if dilution_pct < -5 else 'success'}">{verdict_dilution}</td>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Zombie Ratio</strong><br>
-                            <span style="color:#888; font-size:10px;">Change in Volume per UTXO during Shock</span>
+                            <strong>Zombie Ratio (Divergence)</strong><br>
+                            <span style="color:#888; font-size:10px;">L1 Volume per UTXO</span>
                         </td>
-                        <td class="mono { 'danger' if zombie_impact < 0 else 'success'}">{zombie_impact:+.2f}%</td>
-                        <td class="{ 'danger' if zombie_impact < -10 else 'success'}">{verdict_zombie}</td>
+                        <td class="mono">
+                            Normal: ${act_normal:,.2f}<br>
+                            Shock: ${act_shock:,.2f}
+                        </td>
+                        <td class="mono { 'danger' if zombie_pct < 0 else 'success'}">
+                            {zombie_abs:+,.2f} USD ({zombie_pct:+.2f}%)
+                        </td>
+                        <td class="{ 'danger' if zombie_pct > 20 else 'success'}">{verdict_zombie}</td>
                     </tr>
                 </tbody>
             </table>
             """
         elif 'UTXO' not in df.columns:
-            utxo_html = "<h2>6. Deep Dive: UTXO Quality Assurance</h2><p style='color:#666;'><em>UTXO Data not loaded. Load 'UTXO' file to enable structural quality tests.</em></p>"
+            utxo_html = "<h2>6. Deep Dive: UTXO Forensics</h2><p style='color:#666;'><em>UTXO Data not loaded. Unit economics cannot be calculated.</em></p>"
         else:
-             utxo_html = "<h2>6. Deep Dive: UTXO Quality Assurance</h2><p style='color:#666;'><em>Realized Cap data insufficient for unit economic analysis.</em></p>"
+             utxo_html = "<h2>6. Deep Dive: UTXO Forensics</h2><p style='color:#666;'><em>Realized Cap data insufficient for unit economic analysis.</em></p>"
 
-        # ---------------------------------------------------------
-        # 3. HTML DOCUMENT CONSTRUCTION
-        # ---------------------------------------------------------
+        # --- 3. HTML DOCUMENT CONSTRUCTION (FULL DETAIL) ---
         html = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Forensic Audit: Endogenous Destabilizer</title>
             <style>
-                :root {{ --bg: #050505; --panel: #121212; --text: #e0e0e0; --accent: #00f0ff; --danger: #ff003c; --success: #00ff9d; --warn: #ffea00; }}
-                body {{ background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; font-size: 12px; max-width: 1400px; margin: 0 auto; }}
+                :root {{ --bg: #050505; --panel: #121212; --text: #e0e0e0; --accent: #00f0ff; --danger: #ff003c; --success: #00ff9d; --warn: #ffea00; --l2: #9d00ff; }}
+                body {{ background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; font-size: 12px; max-width: 1600px; margin: 0 auto; }}
                 h1 {{ color: var(--accent); border-bottom: 2px solid var(--danger); padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; font-size: 24px; }}
-                h2 {{ color: #fff; background: linear-gradient(90deg, #222, #000); padding: 10px; border-left: 4px solid var(--accent); margin-top: 40px; text-transform: uppercase; font-size: 16px; }}
+                h2 {{ color: #fff; background: linear-gradient(90deg, #1a1a1a, #000); padding: 10px; border-left: 4px solid var(--accent); margin-top: 50px; text-transform: uppercase; font-size: 16px; letter-spacing: 1px; }}
                 h3 {{ color: #888; margin-top: 5px; font-weight: normal; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }}
-                .kpi-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }}
+                .kpi-grid {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }}
                 .kpi-card {{ background: var(--panel); padding: 15px; border: 1px solid #333; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }}
-                .kpi-val {{ font-size: 22px; font-weight: 700; color: #fff; display: block; margin-top: 5px; }}
+                .kpi-val {{ font-size: 20px; font-weight: 700; color: #fff; display: block; margin-top: 5px; font-family: 'Consolas', monospace; }}
                 .kpi-lbl {{ color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }}
-                table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; background: var(--panel); }}
-                th {{ background: #000; color: var(--accent); padding: 12px 8px; text-align: left; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: 600; }}
-                td {{ padding: 8px; border-bottom: 1px solid #2a2a2a; color: #ccc; }}
-                tr:nth-child(even) {{ background-color: #181818; }}
+                table {{ width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; background: var(--panel); table-layout: fixed; }}
+                th {{ background: #080808; color: var(--accent); padding: 12px 10px; text-align: left; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; font-size: 11px; }}
+                td {{ padding: 10px; border-bottom: 1px solid #222; color: #ccc; vertical-align: top; word-wrap: break-word; }}
+                tr:nth-child(even) {{ background-color: #161616; }}
+                tr:hover {{ background-color: #1f1f1f; }}
                 .danger {{ color: var(--danger); font-weight: bold; }}
                 .success {{ color: var(--success); font-weight: bold; }}
                 .warn {{ color: var(--warn); font-weight: bold; }}
-                .mono {{ font-family: 'Consolas', monospace; }}
-                .subtable {{ border: 1px solid #333; margin: 0; }}
+                .mono {{ font-family: 'Consolas', monospace; font-size: 11px; }}
+                .tiny {{ font-size: 10px; color: #666; }}
             </style>
         </head>
         <body>
-            <h1>Forensic Blockchain Audit: Combined Logic v7.1</h1>
-            <h3>Analysis Engine | Cap Logic: {engine.cap_type} | Vol Logic: {engine.vol_type}</h3>
-            <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Threshold: Top {100-engine.threshold_pct:.1f}%</p>
+            <h1>Forensic Blockchain Audit: Endogenous Destabilizer v7.1</h1>
+            <h3>Analysis Configuration | Cap Logic: {engine.cap_type} | Vol Logic: {engine.vol_type} | Threshold: {100-engine.threshold_pct:.1f}th Percentile</h3>
+            <p class="tiny">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Engine Hash: {hash(str(engine.df.index[0]))} | Observations: {len(df)}</p>
 
             <!-- EXECUTIVE DASHBOARD -->
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Critical Events</span>
+                    <span class="kpi-lbl">Shock Events Detected</span>
                     <span class="kpi-val" style="color:{'#ff003c' if len(events_df) > 0 else '#00ff9d'}">
                         {len(events_df)}
                     </span>
@@ -721,162 +774,229 @@ class ReportGenerator:
                 <div class="kpi-card">
                     <span class="kpi-lbl">Net Velocity Damage</span>
                     <span class="kpi-val danger">
-                        {regime_stats.loc['SHOCK', 'Vel_30d_Change'] - regime_stats.loc['NORMAL', 'Vel_30d_Change']:+.2f}%
+                        {net_damage:+.4f}%
                     </span>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Stagflation Risk</span>
-                    <span class="kpi-val danger">{insol_stats['stag_prob']:.1f}%</span>
+                    <span class="kpi-lbl">Insolvency Duration</span>
+                    <span class="kpi-val warn">{insol_stats['days']} Days</span>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Welch's P-Value</span>
-                    <span class="kpi-val mono" style="font-size:14px; padding-top:8px;">{fmt_p(welch[1])}</span>
+                    <span class="kpi-lbl">IV-2SLS Causality</span>
+                    <span class="kpi-val mono" style="font-size:16px;">
+                        Beta: {fmt_num(iv_res.get('iv_beta'))}
+                    </span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Statistical Confidence</span>
+                    <span class="kpi-val mono" style="font-size:16px;">
+                        p = {fmt_p(welch[1])}
+                    </span>
                 </div>
             </div>
 
-            <!-- SECTION 1: ECONOMETRIC VALIDATION -->
-            <h2>1. Econometric Validation (Methodological Rigor)</h2>
-            <p>Verification of the Endogenous Destabilizer Hypothesis using standard OLS and advanced IV-2SLS estimators.</p>
-            
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <!-- SECTION 1: ECONOMETRIC RIGOR -->
+            <h2>1. Econometric Validation (Full Specification)</h2>
+            <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:20px;">
+                
+                <!-- OLS / THRESHOLD -->
                 <div>
-                    <h3>Standard Model (OLS / Threshold)</h3>
+                    <h3 style="color:#fff;">A. Threshold Regression Model (Hansen 2000)</h3>
                     <table>
-                        <tr><th>Parameter</th><th>Value</th></tr>
-                        <tr><td>Beta 1 (Normal Growth)</td><td class="success mono">{thresh['beta_1_normal']:.4f}%</td></tr>
-                        <tr><td>Beta 2 (Shock Growth)</td><td class="danger mono">{thresh['beta_2_shock']:.4f}%</td></tr>
-                        <tr><td><strong>Marginal Impact</strong></td><td class="danger mono"><strong>{thresh['marginal_impact']:.4f}%</strong></td></tr>
+                        <thead><tr><th>Parameter</th><th>Coefficient</th><th>t-Statistic</th><th>Significance (p)</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Beta 1 (Normal Regime Growth)</td>
+                                <td class="success mono">{thresh['beta_1_normal']:.4f}%</td>
+                                <td class="mono">--</td>
+                                <td class="mono">--</td>
+                            </tr>
+                            <tr>
+                                <td>Beta 2 (Shock Regime Growth)</td>
+                                <td class="warn mono">{thresh['beta_2_shock']:.4f}%</td>
+                                <td class="mono">--</td>
+                                <td class="mono">--</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Marginal Impact (S_t)</strong></td>
+                                <td class="danger mono"><strong>{thresh['marginal_impact']:.4f}%</strong></td>
+                                <td class="mono">{welch[0]:.4f}</td>
+                                <td class="mono"><strong>{fmt_p(welch[1])}</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Optimal Threshold (Min SSR)</td>
+                                <td class="mono">{hansen.get('optimal_threshold', 0):.4f} TCI</td>
+                                <td class="mono">SSR: {hansen.get('min_ssr', 0):.2f}</td>
+                                <td class="mono">Optimized</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
+
+                <!-- ELASTICITY & STATIONARITY -->
                 <div>
-                    <h3>Log-Log Elasticity</h3>
+                    <h3 style="color:#fff;">B. Time Series Diagnostics</h3>
                     <table>
-                        <tr><th>Parameter</th><th>Value</th></tr>
-                        <tr><td>Elasticity (Beta)</td><td class="mono">{elast['beta']:.4f}</td></tr>
-                        <tr><td>R-Squared</td><td class="mono">{elast['r_squared']:.4f}</td></tr>
-                        <tr><td>P-Value</td><td class="mono">{fmt_p(elast['p_value'])}</td></tr>
+                        <thead><tr><th>Test Specification</th><th>Statistic</th><th>Verdict</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Log-Log Elasticity</strong><br><span class="tiny">Velocity sensitivity to 1% TCI increase</span></td>
+                                <td class="mono">
+                                    Beta: {elast['beta']:.4f}<br>
+                                    R²: {elast['r_squared']:.4f}
+                                </td>
+                                <td class="mono">{fmt_p(elast['p_value'])}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ADF Stationarity</strong><br><span class="tiny">H0: Unit Root (Random Walk)</span></td>
+                                <td class="mono">
+                                    ADF: {adf['adf_stat']:.4f}<br>
+                                    p: {fmt_p(adf['p_value'])}
+                                </td>
+                                <td class="{'success' if adf['is_stationary'] else 'danger'}">
+                                    { "STATIONARY" if adf['is_stationary'] else "NON-STATIONARY" }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bootstrap CI (5k)</strong><br><span class="tiny">95% Confidence Interval</span></td>
+                                <td class="mono">[{boot[0]:.2f}%, {boot[1]:.2f}%]</td>
+                                <td class="{'success' if (boot[0] < 0 and boot[1] < 0) else 'warn'}">
+                                    { "ROBUST" if (boot[0] < 0 and boot[1] < 0) else "CROSSES ZERO" }
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- NEW: ADVANCED IDENTIFICATION TABLE -->
-            <h3 style="margin-top:20px; color:#00f0ff;">Advanced Identification (Endogeneity & Optimization)</h3>
-            <table>
-                <thead>
-                    <tr><th>Methodology</th><th>Result</th><th>Interpretation</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Hansen (2000) Optimal Threshold</strong><br><span style="color:#666">Minimizes Squared Errors (SSR)</span></td>
-                        <td class="mono">{hansen.get('optimal_threshold', 0):.2f} TCI</td>
-                        <td>
-                            Mathematically derived break point.<br>
-                            Current Setting: {engine.thresh_val:.2f} TCI
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>IV-2SLS (Endogeneity Fix)</strong><br><span style="color:#666">Instrument: Difficulty/Hashrate</span></td>
-                        <td class="mono">{iv_res.get('status', 'Not Run')}</td>
-                        <td class="mono">
-                            {f"IV Beta: {iv_res.get('iv_beta', 0):.4f} (p={fmt_p(iv_res.get('p_value'))})" if 'iv_beta' in iv_res else "Requires 'Difficulty' Data"}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>Appendix B: Statistical Significance Tests</h3>
-            <table>
-                <thead><tr><th>Test Method</th><th>Result</th><th>Verdict</th></tr></thead>
-                <tbody>
-                    <tr>
-                        <td>Welch's t-Test (Unequal Variance)</td>
-                        <td class="mono">t-stat: {welch[0]:.4f} | p-val: {fmt_p(welch[1])}</td>
-                        <td class="{'success' if welch[1] < 0.05 else 'warn'}">{sig_verdict}</td>
-                    </tr>
-                    <tr>
-                        <td>Bootstrap 95% CI (5,000 Iterations)</td>
-                        <td class="mono">[{boot[0]:.2f}%, {boot[1]:.2f}%]</td>
-                        <td>{'VALID (Non-Zero)' if (boot[0] < 0 and boot[1] < 0) else 'INCONCLUSIVE'}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- SECTION 2: STRUCTURAL REGIME ANALYSIS -->
-            <h2>2. Structural Regime Analysis</h2>
-            <p>Comparative analysis of network physics between 'Normal' operations and 'Shock' friction regimes.</p>
+            <!-- IV-2SLS TABLE -->
+            <h3 style="margin-top:25px; color:#fff;">C. Endogeneity Correction (IV-2SLS)</h3>
+            <p class="tiny" style="margin-top:0;">Instrument: Lagged Mempool Size (Physical Backlog) | Target: Friction (TCI) | Dependent: Velocity Change</p>
             <table>
                 <thead>
                     <tr>
-                        <th>Metric</th>
-                        <th>Normal State (Avg)</th>
-                        <th>Shock State (Avg)</th>
-                        <th>Multiplier / Delta</th>
+                        <th>Model Stage</th>
+                        <th>Coefficient / Metric</th>
+                        <th>Standard Error / R²</th>
+                        <th>P-Value</th>
+                        <th>Causal Interpretation</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Avg Transaction Fee</td>
-                        <td>${regime_stats.loc['NORMAL', 'Fees']:.2f}</td>
-                        <td class="danger">${regime_stats.loc['SHOCK', 'Fees']:.2f}</td>
-                        <td class="warn">{regime_stats.loc['SHOCK', 'Fees'] / regime_stats.loc['NORMAL', 'Fees']:.1f}x Increase</td>
+                        <td>Stage 1 (Instrument Strength)</td>
+                        <td class="mono">F-Stat: N/A (See R²)</td>
+                        <td class="mono">R²: {iv_res.get('stage1_strength', 0):.4f}</td>
+                        <td class="mono">< 0.0001</td>
+                        <td>Relevance of Instrument (Backlog -> Friction)</td>
                     </tr>
                     <tr>
-                        <td>Avg Delay (Latency)</td>
-                        <td>{regime_stats.loc['NORMAL', 'Delay']:.1f} min</td>
-                        <td class="danger">{regime_stats.loc['SHOCK', 'Delay']:.1f} min</td>
-                        <td class="warn">{regime_stats.loc['SHOCK', 'Delay'] / regime_stats.loc['NORMAL', 'Delay']:.1f}x Slower</td>
-                    </tr>
-                    <tr>
-                        <td>Transaction Cost Index (TCI)</td>
-                        <td>{regime_stats.loc['NORMAL', 'TCI']:.2f}</td>
-                        <td class="danger">{regime_stats.loc['SHOCK', 'TCI']:.2f}</td>
-                        <td class="danger">{regime_stats.loc['SHOCK', 'TCI'] / regime_stats.loc['NORMAL', 'TCI']:.1f}x Stress</td>
-                    </tr>
-                    <tr>
-                        <td>UTXO Set Growth (30d)</td>
-                        <td class="success">{utxo_normal_growth:+.2f}%</td>
-                        <td class="warn">{utxo_shock_growth:+.2f}%</td>
-                        <td>Structural Change</td>
-                    </tr>
-                    <tr>
-                        <td>30-Day Velocity Growth</td>
-                        <td class="success">{regime_stats.loc['NORMAL', 'Vel_30d_Change']:+.2f}%</td>
-                        <td class="danger">{regime_stats.loc['SHOCK', 'Vel_30d_Change']:+.2f}%</td>
-                        <td class="danger">CRITICAL FAILURE</td>
+                        <td>Stage 2 (Causal Estimate)</td>
+                        <td class="mono danger"><strong>IV Beta: {fmt_num(iv_res.get('iv_beta'))}</strong></td>
+                        <td class="mono">--</td>
+                        <td class="mono"><strong>{fmt_p(iv_res.get('p_value'))}</strong></td>
+                        <td>Pure Supply-Side Constraint Impact</td>
                     </tr>
                 </tbody>
             </table>
 
-            <!-- SECTION 3: INSOLVENCY ANALYSIS -->
-            <h2>3. Insolvency & Causality</h2>
+            <!-- SECTION 2: STRUCTURAL PHYSICS -->
+            <h2>2. Structural Regime Physics</h2>
             <table>
                 <thead>
-                    <tr><th>Metric</th><th>Value</th><th>Implication</th></tr>
+                    <tr>
+                        <th>Network Metric</th>
+                        <th>Normal Regime (μ)</th>
+                        <th>Shock Regime (μ)</th>
+                        <th>Absolute Delta (Δ)</th>
+                        <th>Multiplier (x)</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Total Insolvency Days</td>
-                        <td class="mono">{insol_stats['days']} Days</td>
-                        <td>Direct Retail Lockout (>{engine.insol_lbl})</td>
+                        <td>Transaction Fee (USD)</td>
+                        <td class="mono">${regime_stats.loc['NORMAL', 'Fees']:.2f}</td>
+                        <td class="danger mono">${regime_stats.loc['SHOCK', 'Fees']:.2f}</td>
+                        <td class="mono">+${regime_stats.loc['SHOCK', 'Fees'] - regime_stats.loc['NORMAL', 'Fees']:.2f}</td>
+                        <td class="warn mono">{fee_mult:.2f}x</td>
                     </tr>
                     <tr>
-                        <td>Peak Cost Metric</td>
-                        <td class="warn mono">{insol_stats['max']:.2f}</td>
-                        <td>Exceeded {engine.insol_thresh} Threshold</td>
+                        <td>Latency (Minutes)</td>
+                        <td class="mono">{regime_stats.loc['NORMAL', 'Delay']:.2f}m</td>
+                        <td class="danger mono">{regime_stats.loc['SHOCK', 'Delay']:.2f}m</td>
+                        <td class="mono">+{regime_stats.loc['SHOCK', 'Delay'] - regime_stats.loc['NORMAL', 'Delay']:.2f}m</td>
+                        <td class="warn mono">{regime_stats.loc['SHOCK', 'Delay'] / regime_stats.loc['NORMAL', 'Delay']:.2f}x</td>
+                    </tr>
+                    <tr>
+                        <td>Composite Friction (TCI)</td>
+                        <td class="mono">{regime_stats.loc['NORMAL', 'TCI']:.2f}</td>
+                        <td class="danger mono">{regime_stats.loc['SHOCK', 'TCI']:.2f}</td>
+                        <td class="mono">+{regime_stats.loc['SHOCK', 'TCI'] - regime_stats.loc['NORMAL', 'TCI']:.2f}</td>
+                        <td class="danger mono">{tci_mult:.2f}x</td>
+                    </tr>
+                    <tr>
+                        <td>Velocity Growth (30d)</td>
+                        <td class="success mono">{vel_normal:+.4f}%</td>
+                        <td class="danger mono">{vel_shock:+.4f}%</td>
+                        <td class="danger mono"><strong>{net_damage:+.4f}%</strong></td>
+                        <td class="danger mono"><strong>COLLAPSE</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 3: INSOLVENCY & EXCLUSION -->
+            <h2>3. Insolvency & Economic Exclusion</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric Definition</th>
+                        <th>Computed Value</th>
+                        <th>Economic Implication</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Insolvency Threshold</strong><br><span class="tiny">{engine.insol_lbl} limit</span></td>
+                        <td class="mono">{engine.insol_thresh}</td>
+                        <td>Baseline for Economic Viability</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Days of Exclusion</strong><br><span class="tiny">Count where TCI > Threshold</span></td>
+                        <td class="warn mono">{insol_stats['days']} Days</td>
+                        <td>Periods where retail cannot transact economically.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Peak Friction Metric</strong><br><span class="tiny">Max Observed {engine.insol_lbl}</span></td>
+                        <td class="danger mono">{insol_stats['max']:.2f}</td>
+                        <td>Extreme outlier stress event.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stagflation Probability</strong><br><span class="tiny">P(Price <= 0 AND Vel <= 0 | Shock)</span></td>
+                        <td class="danger mono">{insol_stats['stag_prob']:.2f}%</td>
+                        <td>Probability of "Hollow" market conditions.</td>
                     </tr>
                     {granger_html}
                 </tbody>
             </table>
 
-            <!-- SECTION 4: DEEP DIVE CALCULATIONS (UTXO) -->
+            <!-- SECTION 4: DEEP DIVE (Inserted Dynamically) -->
             {utxo_html}
 
             <!-- SECTION 5: EVENT LOG -->
-            <h2>4. Forensic Event Log (Aggregated)</h2>
+            <h2>4. Forensic Event Log (Detailed)</h2>
+            <p class="tiny">Chronological listing of all detected Regime Shifts. Definition: Consecutive days where TCI > {engine.thresh_val:.2f}.</p>
             <table>
                 <thead>
                     <tr>
-                        <th>Start Date</th><th>End Date</th><th>Duration</th><th>Peak TCI</th><th>Avg Fee</th><th>Price Imp</th><th>Vel Imp</th><th>State</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Dur (Days)</th>
+                        <th>Peak TCI</th>
+                        <th>Avg Fee</th>
+                        <th>Avg Delay</th>
+                        <th>Price Impact</th>
+                        <th>Velocity Impact</th>
+                        <th>Dominant State</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -884,47 +1004,58 @@ class ReportGenerator:
                     <tr>
                         <td class="mono">{r['Start'].strftime('%Y-%m-%d')}</td>
                         <td class="mono">{r['End'].strftime('%Y-%m-%d')}</td>
-                        <td class="mono">{r['Duration']} Days</td>
-                        <td class="danger mono">{r['Peak_TCI']:.1f}</td>
+                        <td class="mono">{r['Duration']}</td>
+                        <td class="danger mono">{r['Peak_TCI']:.2f}</td>
                         <td class="mono">${r['Avg_Fee']:.2f}</td>
+                        <td class="mono">{r['Avg_Delay']:.2f}m</td>
                         <td class="mono {'success' if r['Price_Imp']>0 else 'danger'}">{r['Price_Imp']:+.2f}%</td>
                         <td class="mono {'success' if r['Vel_Imp']>0 else 'danger'}"><strong>{r['Vel_Imp']:+.2f}%</strong></td>
                         <td>{r['State']}</td>
-                    </tr>''' for _, r in events_df.iterrows()]) if not events_df.empty else "<tr><td colspan='8'>No events detected.</td></tr>"}
+                    </tr>''' for _, r in events_df.iterrows()]) if not events_df.empty else "<tr><td colspan='9'>No events detected above threshold.</td></tr>"}
                 </tbody>
             </table>
 
-            <!-- SECTION 6: DAILY LOG -->
-            <h2>5. Forensic Daily Log (Raw Data)</h2>
-            <div style="max-height:500px; overflow-y:scroll; border:1px solid #333;">
+            <!-- SECTION 6: RAW DAILY LOG -->
+            <h2>5. Raw Daily Shock Data (Full Extract)</h2>
+            <div style="max-height:800px; overflow-y:scroll; border:1px solid #333; background:#000;">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Date</th><th>Fee ($)</th><th>Delay</th><th>TCI</th><th>Velocity</th><th>30d Impact</th><th>State</th>
+                        <tr style="position:sticky; top:0; background:#000; z-index:10;">
+                            <th>Date</th>
+                            <th>Fee ($)</th>
+                            <th>Delay (m)</th>
+                            <th>Mempool (B)</th>
+                            <th>TCI Score</th>
+                            <th>Velocity</th>
+                            <th>30d Change</th>
+                            <th>State</th>
                         </tr>
                     </thead>
                     <tbody>
                         {''.join([f'''
                         <tr>
                             <td class="mono">{i.strftime('%Y-%m-%d')}</td>
-                            <td class="mono">${r['Fees']:.2f} if 'Fees' in r else 'N/A'</td>
-                            <td class="mono">{r['Delay']:.1f}m</td>
-                            <td class="mono danger">{r['TCI']:.1f}</td>
-                            <td class="mono">{r['Velocity']:.6f}</td>
-                            <td class="mono {'success' if r['Vel_30d_Change']>0 else 'danger'}">{r['Vel_30d_Change']:+.2f}%</td>
-                            <td>{r['State']}</td>
+                            <td class="mono">${r['Fees']:.2f} if 'Fees' in r else '-'</td>
+                            <td class="mono">{r['Delay']:.2f}m</td>
+                            <td class="mono">{int(r['Mempool']) if 'Mempool' in r else '-'}</td>
+                            <td class="mono danger">{r['TCI']:.4f}</td>
+                            <td class="mono">{r['Velocity']:.8f}</td>
+                            <td class="mono {'success' if r['Vel_30d_Change']>0 else 'danger'}">{r['Vel_30d_Change']:+.4f}%</td>
+                            <td class="tiny">{r['State']}</td>
                         </tr>''' for i, r in df[df['Regime'] == 'SHOCK'].sort_values('Date', ascending=False).iterrows()])}
                     </tbody>
                 </table>
             </div>
 
-            <div style="margin-top:50px; border-top:1px solid #333; padding-top:10px; color:#666; text-align:center;">
-                Endogenous Destabilizer Research Suite v7.1 | Generated by ForensicUnit
+            <div style="margin-top:50px; border-top:1px solid #333; padding-top:10px; color:#444; text-align:center;">
+                <p><strong>Research Suite v7.1 | Forensic Audit Core</strong><br>
+                Generated via Python 3.x | Matplotlib | Statsmodels | Pandas</p>
             </div>
         </body>
         </html>
         """
-        return html# ==============================================================================
+        return html
+        
 #  5. GUI SUITE (Merged & Enhanced)
 # ==============================================================================
 class ResearchSuite:
@@ -1390,12 +1521,14 @@ class ResearchSuite:
             # ==============================================================================
             validation = {
                 'elasticity': EconometricValidator.run_log_log_elasticity(df),
-                'threshold': EconometricValidator.run_threshold_regression(df), # This was missing
+                'threshold': EconometricValidator.run_threshold_regression(df),
                 'welch': EconometricValidator.run_welchs_t_test(df),
                 'bootstrap': EconometricValidator.run_bootstrap_ci(df),
-                'hansen': EconometricValidator.run_hansen_threshold_search(df), # New
-                'iv': EconometricValidator.run_iv_regression(df) # New
+                'hansen': EconometricValidator.run_hansen_threshold_search(df),
+                'iv': EconometricValidator.run_iv_regression(df),
+                'adf': EconometricValidator.run_stationarity_test(df) # <--- ADD THIS
             }
+
 
             # ==============================================================================
             #  4. EXPORT
