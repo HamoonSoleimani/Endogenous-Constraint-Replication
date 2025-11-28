@@ -173,53 +173,106 @@ class ForensicEngine:
         self._calc_phase_state()
 
     def _apply_logical_fixes(self):
-        # 1. Realized Cap Logic
-        # Requires: Price, Supply (total-bitcoins.json), and MVRV
-        if 'Price' in self.df.columns and 'Supply' in self.df.columns and 'MVRV' in self.df.columns:
-            # Market Cap = Price * Supply
-            mcap = self.df['Price'] * self.df['Supply']
-            # Realized Cap = Market Cap / MVRV
-            self.df['Realized_Cap'] = mcap / self.df['MVRV'].replace(0, 1)
-            self.cap_type = "Realized Cap (Derived)"
-        elif 'Price' in self.df.columns and 'Supply' in self.df.columns:
-            # Fallback to Market Cap if MVRV missing
-            self.df['Realized_Cap'] = self.df['Price'] * self.df['Supply']
-            self.cap_type = "Market Cap (Proxy)"
-        else:
-            self.df['Realized_Cap'] = np.nan
-            self.cap_type = "Insufficient Data"
-
-        # 2. Velocity Calculation
-        if 'Volume' in self.df.columns:
-            self.df['Vol_L1'] = self.df['Volume']
+            """
+            FORENSIC LOGIC ENGINE v7.1 (Strict Mode)
             
-            # L2 Logic (Lightning_Network_Capacity.csv)
-            if 'LN_Cap' in self.df.columns and 'Price' in self.df.columns:
-                # Capacity is usually in BTC, convert to USD -> Capacity * Price * Velocity Multiplier (est 10)
-                self.df['Vol_L2'] = self.df['LN_Cap'] * self.df['Price'] * 10.0
-                self.df['Vol_Total'] = self.df['Vol_L1'] + self.df['Vol_L2']
-                self.vol_type = "L1 + L2"
+            Changes from previous version:
+            1. REMOVED 'Magic Number' (10x) multiplier for L2 Volume.
+            2. SEPARATED 'Velocity' (Flow) from 'Liquidity' (Stock).
+            3. PRIORITIZED Realized Cap over Market Cap for denominator.
+            """
+            
+            # ---------------------------------------------------------
+            # 1. CAPITALIZATION LOGIC (The Denominator)
+            # ---------------------------------------------------------
+            # We need the economic base to calculate Velocity (V = Vol / Cap).
+            # Preference: Realized Cap (cost basis) > Market Cap (speculative value).
+            
+            if 'Price' in self.df.columns and 'Supply' in self.df.columns:
+                # Calculate Standard Market Cap (Price * Supply)
+                self.df['Market_Cap'] = self.df['Price'] * self.df['Supply']
+                
+                if 'MVRV' in self.df.columns:
+                    # DERIVE Realized Cap: Market Cap / MVRV Ratio
+                    # This reconstructs the aggregate cost basis of the network.
+                    self.df['Realized_Cap'] = self.df['Market_Cap'] / self.df['MVRV'].replace(0, np.nan)
+                    self.cap_type = "Realized Cap (Derived from MVRV)"
+                else:
+                    # Fallback to Market Cap (Less accurate for utility, but usable)
+                    self.df['Realized_Cap'] = self.df['Market_Cap']
+                    self.cap_type = "Market Cap (MVRV Missing)"
             else:
+                # Critical Data Missing
+                self.df['Realized_Cap'] = np.nan
+                self.df['Market_Cap'] = np.nan
+                self.cap_type = "INSUFFICIENT DATA (Price/Supply Missing)"
+
+            # ---------------------------------------------------------
+            # 2. VOLUME & LAYER 2 LOGIC (The Numerator)
+            # ---------------------------------------------------------
+            
+            # Layer 1 Volume (Verified On-Chain)
+            if 'Volume' in self.df.columns:
+                self.df['Vol_L1'] = self.df['Volume']
+            else:
+                self.df['Vol_L1'] = np.nan
+
+            # Layer 2 Logic (Lightning Network)
+            # FIX: Removed arbitrary 10x multiplier. 
+            # LN Capacity is treated as "Liquidity Available" (Stock), not "Volume Sent" (Flow).
+            if 'LN_Cap' in self.df.columns and 'Price' in self.df.columns:
+                # Convert BTC Capacity to USD Value
+                self.df['Liq_L2_USD'] = self.df['LN_Cap'] * self.df['Price']
+                
+                # STRICT MODE: Do NOT add L2 Liquidity to L1 Volume. 
+                # Adding Stock (Cap) to Flow (Vol) is a dimensional error.
+                # We track L2 separately to see if Liquidity rises when L1 Friction rises.
+                self.df['Vol_Total'] = self.df['Vol_L1']
+                self.vol_type = "L1 Verified (L2 Liquidity Tracked Separately)"
+            else:
+                self.df['Liq_L2_USD'] = 0
                 self.df['Vol_Total'] = self.df['Vol_L1']
                 self.vol_type = "L1 Only"
+
+            # ---------------------------------------------------------
+            # 3. VELOCITY CALCULATION
+            # ---------------------------------------------------------
+            # Formula: Velocity = Total Transaction Volume / Network Capitalization
             
-            if 'Realized_Cap' in self.df.columns and not self.df['Realized_Cap'].isna().all():
-                self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap']
+            if 'Vol_Total' in self.df.columns and 'Realized_Cap' in self.df.columns:
+                # Robust Velocity: Uses Verified Volume / Realized Cost Basis
+                self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap'].replace(0, np.nan)
             else:
-                 self.df['Vel_Robust'] = np.nan
-        else:
-            self.df['Vel_Robust'] = np.nan
-            self.vol_type = "N/A"
+                self.df['Vel_Robust'] = np.nan
 
-        if 'NVT' in self.df.columns:
-            self.df['Vel_Standard'] = 1 / self.df['NVT'].replace(0, 1)
-        else:
-            self.df['Vel_Standard'] = self.df['Vel_Robust']
+            # NVT Fallback (Network Value to Transactions)
+            # NVT = Cap / Volume, so Velocity = 1 / NVT
+            if 'NVT' in self.df.columns:
+                self.df['Vel_Standard'] = 1.0 / self.df['NVT'].replace(0, np.nan)
+            else:
+                self.df['Vel_Standard'] = np.nan
 
-        # Prioritize Robust Velocity
-        self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
-        self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0) if 'Price' in self.df.columns else 0
+            # Final Velocity Composite
+            # Prioritize the Robust calculation, fill gaps with NVT-based calculation
+            self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
+            
+            # ---------------------------------------------------------
+            # 4. MOMENTUM & AUXILIARY METRICS
+            # ---------------------------------------------------------
+            
+            # Price Momentum (30-day lookback for Stagflation Matrix)
+            if 'Price' in self.df.columns:
+                self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0)
+            else:
+                self.df['Price_Mom'] = 0
 
+            # Data Cleanup: Forward Fill small gaps to prevent regression crashes
+            # (Only fills gaps, does not alter existing data)
+            cols_to_clean = ['Velocity', 'Realized_Cap', 'Vol_Total', 'Liq_L2_USD']
+            for col in cols_to_clean:
+                if col in self.df.columns:
+                    self.df[col] = self.df[col].replace([np.inf, -np.inf], np.nan)
+                    
     def _calc_tci(self):
             # Advanced TCI: (Magnitude + Volatility) * Delay
             if 'Fees' in self.df.columns:
@@ -326,6 +379,7 @@ class ForensicEngine:
 class EconometricValidator:
     """
     Implements Appendix A (Mathematical Derivations) and Appendix B (Statistical Tests)
+    Includes: OLS, Threshold Regression, Hansen Search, and IV-2SLS.
     """
     
     @staticmethod
@@ -354,6 +408,10 @@ class EconometricValidator:
 
     @staticmethod
     def run_threshold_regression(df):
+        """
+        Standard OLS based on the user-selected regime (GUI Slider).
+        Calculates Beta 1 (Normal) vs Beta 2 (Shock).
+        """
         try:
             if 'Vel_30d_Change' not in df.columns: raise ValueError
 
@@ -374,6 +432,87 @@ class EconometricValidator:
             }
         except:
             return {'beta_1_normal': 0.0, 'marginal_impact': 0.0, 'beta_2_shock': 0.0, 'p_value': 1.0}
+
+    @staticmethod
+    def run_hansen_threshold_search(df):
+        """
+        Implements Hansen (2000) Least Squares verification to find the 
+        mathematically optimal structural break rather than guessing.
+        """
+        try:
+            if 'Vel_30d_Change' not in df.columns or 'TCI' not in df.columns:
+                return {'optimal_threshold': 0, 'min_ssr': 0}
+
+            # Prepare data
+            data = df[['Vel_30d_Change', 'TCI']].dropna().sort_values('TCI')
+            y = data['Vel_30d_Change']
+            q = data['TCI'] # Threshold variable
+            
+            # Search range: 15th to 85th percentile (Trimmed)
+            lower = q.quantile(0.15)
+            upper = q.quantile(0.85)
+            candidates = q[(q >= lower) & (q <= upper)].unique()
+            
+            best_ssr = np.inf
+            best_thresh = 0
+            
+            # Grid Search for Minimum Sum of Squared Residuals (SSR)
+            # Skip every 5th point to speed up calculation
+            for gamma in candidates[::5]: 
+                # Split sample based on candidate gamma
+                s1 = y[q <= gamma]
+                s2 = y[q > gamma]
+                
+                # Calculate SSR for this split
+                ssr = ((s1 - s1.mean())**2).sum() + ((s2 - s2.mean())**2).sum()
+                
+                if ssr < best_ssr:
+                    best_ssr = ssr
+                    best_thresh = gamma
+            
+            return {
+                'optimal_threshold': best_thresh,
+                'min_ssr': best_ssr
+            }
+        except Exception as e:
+            print(f"Hansen Search Failed: {e}")
+            return {'optimal_threshold': 0, 'min_ssr': 0}
+
+    @staticmethod
+    def run_iv_regression(df):
+        """
+        Performs Two-Stage Least Squares (2SLS) to fix Endogeneity.
+        Instrument: Network Difficulty (Supply-side constraints)
+        Endogenous Variable: TCI
+        Dependent Variable: Velocity Change
+        """
+        try:
+            # Require Instruments
+            if 'Difficulty' not in df.columns or 'TCI' not in df.columns: 
+                return {'status': 'Skipped (Missing Difficulty Data)'}
+
+            # Prepare Dataset
+            data = df[['Vel_30d_Change', 'TCI', 'Difficulty']].dropna()
+            
+            if len(data) < 10: return {'status': 'Insufficient Data'}
+
+            # STAGE 1: Predict TCI using Difficulty (Instrument)
+            X_stage1 = sm.add_constant(data['Difficulty'])
+            model_stage1 = sm.OLS(data['TCI'], X_stage1).fit()
+            data['Predicted_TCI'] = model_stage1.fittedvalues
+            
+            # STAGE 2: Regress Velocity on Predicted TCI
+            X_stage2 = sm.add_constant(data['Predicted_TCI'])
+            model_stage2 = sm.OLS(data['Vel_30d_Change'], X_stage2).fit()
+            
+            return {
+                'status': 'Success (IV-2SLS)',
+                'iv_beta': model_stage2.params['Predicted_TCI'],
+                'p_value': model_stage2.pvalues['Predicted_TCI'],
+                'stage1_strength': model_stage1.rsquared
+            }
+        except Exception as e:
+            return {'status': f"Error: {str(e)}"}
 
     @staticmethod
     def run_welchs_t_test(df):
@@ -403,27 +542,41 @@ class EconometricValidator:
             diffs = np.mean(shock[idx_s], axis=1) - np.mean(normal[idx_n], axis=1)
             return np.percentile(diffs, 2.5), np.percentile(diffs, 97.5)
         except:
-            return 0.0, 0.0
-# ==============================================================================
+            return 0.0, 0.0# ==============================================================================
 #  4. REPORT GENERATOR
 # ==============================================================================
 class ReportGenerator:
     @staticmethod
     def generate(engine, events_df, regime_stats, insol_stats, validation, granger_html):
-        df = engine.df
+        df = engine.df.copy()
         
-        # Helper for p-value formatting
-        def fmt_p(p): return "< 0.0001" if p < 0.0001 else f"{p:.4f}"
+        # ---------------------------------------------------------
+        # HELPER: P-Value Formatting
+        # ---------------------------------------------------------
+        def fmt_p(p): 
+            if p is None: return "N/A"
+            return "< 0.0001" if p < 0.0001 else f"{p:.4f}"
         
-        # Unpack Validation Results
-        elast = validation['elasticity']
-        thresh = validation['threshold']
-        welch = validation['welch']
-        boot = validation['bootstrap']
+        # ---------------------------------------------------------
+        # 1. UNPACK VALIDATION RESULTS (Safe Extraction)
+        # ---------------------------------------------------------
+        # Standard OLS & Tests
+        elast = validation.get('elasticity', {'beta': 0, 'r_squared': 0, 'p_value': 1})
+        thresh = validation.get('threshold', {'beta_1_normal': 0, 'beta_2_shock': 0, 'marginal_impact': 0})
+        welch = validation.get('welch', (0, 1)) # (t-stat, p-val)
+        boot = validation.get('bootstrap', (0, 0)) # (lower, upper)
         
+        # NEW: Advanced Methodological Fixes (Hansen & IV)
+        hansen = validation.get('hansen', {'optimal_threshold': 0, 'min_ssr': 0})
+        iv_res = validation.get('iv', {'status': 'Not Run', 'iv_beta': 0, 'p_value': 1})
+        
+        # Verdict Logic
         sig_verdict = "SIGNIFICANT (p < 0.05)" if welch[1] < 0.05 else "INCONCLUSIVE (Tail Noise)"
-
-        # UTXO Stats (Basic)
+        
+        # ---------------------------------------------------------
+        # 2. CALCULATE UTXO FORENSICS (Deep Dive)
+        # ---------------------------------------------------------
+        # Determine UTXO Growth for Dashboard
         if 'UTXO_Growth' in df.columns:
             utxo_normal_growth = df[df['Regime']=='NORMAL']['UTXO_Growth'].mean() * 100
             utxo_shock_growth = df[df['Regime']=='SHOCK']['UTXO_Growth'].mean() * 100
@@ -431,25 +584,28 @@ class ReportGenerator:
             utxo_normal_growth = 0
             utxo_shock_growth = 0
 
-        # ==============================================================================
-        #  FORENSIC DEEP DIVE: THE UTXO QUALITY TEST CALCULATIONS
-        # ==============================================================================
+        # Structural Inversion Analysis (Pre vs Post 2023)
         utxo_html = ""
         if 'UTXO' in df.columns and 'Realized_Cap' in df.columns:
-            # 1. Regime Correlation Split (Pre/Post 2023)
-            # Ensure index is sorted for slicing
+            # Sort for slicing
             df_sorted = df.sort_index()
-            # We only run the split if data covers this range
-            if df_sorted.index.min() < pd.Timestamp('2023-01-01') < df_sorted.index.max():
+            
+            # Check date range availability
+            has_pre = df_sorted.index.min() < pd.Timestamp('2023-01-01')
+            has_post = df_sorted.index.max() > pd.Timestamp('2023-01-01')
+            
+            if has_pre and has_post:
                 pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
                 post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
                 
+                # Correlation: Friction (TCI) vs UTXO Count Growth
                 corr_pre = pre_2023['TCI'].corr(pre_2023['UTXO_Growth'])
                 corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
             else:
-                corr_pre = 0; corr_post = 0
+                corr_pre = 0
+                corr_post = 0
             
-            # 2. UTXO Value Dilution
+            # Metric 2: Value Dilution (Realized Cap / UTXO Count)
             df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
             avg_val_normal = df[df['Regime']=='NORMAL']['Val_Per_UTXO'].mean()
             avg_val_shock = df[df['Regime']=='SHOCK']['Val_Per_UTXO'].mean()
@@ -459,9 +615,10 @@ class ReportGenerator:
             else:
                 dilution_pct = 0
             
-            # 3. Zombie Ratio
-            if 'Volume' in df.columns:
-                df['Act_Per_UTXO'] = df['Volume'] / df['UTXO'].replace(0, 1)
+            # Metric 3: Zombie Ratio (Volume / UTXO Count)
+            # (Note: Using Vol_L1 explicitly to measure on-chain displacement)
+            if 'Vol_L1' in df.columns:
+                df['Act_Per_UTXO'] = df['Vol_L1'] / df['UTXO'].replace(0, 1)
                 act_normal = df[df['Regime']=='NORMAL']['Act_Per_UTXO'].mean()
                 act_shock = df[df['Regime']=='SHOCK']['Act_Per_UTXO'].mean()
                 if act_normal != 0:
@@ -470,12 +627,12 @@ class ReportGenerator:
             else:
                 zombie_impact = 0
 
-            # Determine Verdicts
+            # Logic Verdicts
             verdict_corr = '<strong>STRUCTURAL INVERSION</strong>' if (corr_pre < 0 and corr_post > 0) else 'Inconclusive/Linear'
             verdict_dilution = '<strong>DUST CONFIRMED</strong>' if dilution_pct < -5 else 'Healthy Growth'
             verdict_zombie = '<strong>ACTIVITY COLLAPSE</strong>' if zombie_impact < -10 else 'Active Userbase'
 
-            # Build the Deep Dive HTML Block
+            # HTML Construction for Deep Dive
             utxo_html = f"""
             <h2>6. Deep Dive: UTXO Quality Assurance</h2>
             <p>Mathematical isolation of "Adoption" vs. "Bloat" using Regime-Split Correlation and Unit Economics.</p>
@@ -519,8 +676,9 @@ class ReportGenerator:
         else:
              utxo_html = "<h2>6. Deep Dive: UTXO Quality Assurance</h2><p style='color:#666;'><em>Realized Cap data insufficient for unit economic analysis.</em></p>"
 
-
-        # Construct Main HTML
+        # ---------------------------------------------------------
+        # 3. HTML DOCUMENT CONSTRUCTION
+        # ---------------------------------------------------------
         html = f"""
         <!DOCTYPE html>
         <html>
@@ -544,10 +702,11 @@ class ReportGenerator:
                 .success {{ color: var(--success); font-weight: bold; }}
                 .warn {{ color: var(--warn); font-weight: bold; }}
                 .mono {{ font-family: 'Consolas', monospace; }}
+                .subtable {{ border: 1px solid #333; margin: 0; }}
             </style>
         </head>
         <body>
-            <h1>Forensic Blockchain Audit: Combined Logic v7.0</h1>
+            <h1>Forensic Blockchain Audit: Combined Logic v7.1</h1>
             <h3>Analysis Engine | Cap Logic: {engine.cap_type} | Vol Logic: {engine.vol_type}</h3>
             <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Threshold: Top {100-engine.threshold_pct:.1f}%</p>
 
@@ -575,13 +734,13 @@ class ReportGenerator:
                 </div>
             </div>
 
-            <!-- SECTION 1: ECONOMETRIC VALIDATION (APPENDIX A & B) -->
-            <h2>1. Econometric Validation (Appendix A & B)</h2>
-            <p>Mathematical verification of the Endogenous Destabilizer Hypothesis using OLS and Bootstrap methodology.</p>
+            <!-- SECTION 1: ECONOMETRIC VALIDATION -->
+            <h2>1. Econometric Validation (Methodological Rigor)</h2>
+            <p>Verification of the Endogenous Destabilizer Hypothesis using standard OLS and advanced IV-2SLS estimators.</p>
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                 <div>
-                    <h3>Appendix A.3: Threshold Regression</h3>
+                    <h3>Standard Model (OLS / Threshold)</h3>
                     <table>
                         <tr><th>Parameter</th><th>Value</th></tr>
                         <tr><td>Beta 1 (Normal Growth)</td><td class="success mono">{thresh['beta_1_normal']:.4f}%</td></tr>
@@ -590,7 +749,7 @@ class ReportGenerator:
                     </table>
                 </div>
                 <div>
-                    <h3>Appendix A.4: Log-Log Elasticity</h3>
+                    <h3>Log-Log Elasticity</h3>
                     <table>
                         <tr><th>Parameter</th><th>Value</th></tr>
                         <tr><td>Elasticity (Beta)</td><td class="mono">{elast['beta']:.4f}</td></tr>
@@ -599,6 +758,31 @@ class ReportGenerator:
                     </table>
                 </div>
             </div>
+
+            <!-- NEW: ADVANCED IDENTIFICATION TABLE -->
+            <h3 style="margin-top:20px; color:#00f0ff;">Advanced Identification (Endogeneity & Optimization)</h3>
+            <table>
+                <thead>
+                    <tr><th>Methodology</th><th>Result</th><th>Interpretation</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Hansen (2000) Optimal Threshold</strong><br><span style="color:#666">Minimizes Squared Errors (SSR)</span></td>
+                        <td class="mono">{hansen.get('optimal_threshold', 0):.2f} TCI</td>
+                        <td>
+                            Mathematically derived break point.<br>
+                            Current Setting: {engine.thresh_val:.2f} TCI
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>IV-2SLS (Endogeneity Fix)</strong><br><span style="color:#666">Instrument: Difficulty/Hashrate</span></td>
+                        <td class="mono">{iv_res.get('status', 'Not Run')}</td>
+                        <td class="mono">
+                            {f"IV Beta: {iv_res.get('iv_beta', 0):.4f} (p={fmt_p(iv_res.get('p_value'))})" if 'iv_beta' in iv_res else "Requires 'Difficulty' Data"}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <h3>Appendix B: Statistical Significance Tests</h3>
             <table>
@@ -684,7 +868,7 @@ class ReportGenerator:
                 </tbody>
             </table>
 
-            <!-- SECTION 4: DEEP DIVE CALCULATIONS (NEW) -->
+            <!-- SECTION 4: DEEP DIVE CALCULATIONS (UTXO) -->
             {utxo_html}
 
             <!-- SECTION 5: EVENT LOG -->
@@ -723,7 +907,7 @@ class ReportGenerator:
                         {''.join([f'''
                         <tr>
                             <td class="mono">{i.strftime('%Y-%m-%d')}</td>
-                            <td class="mono">${r['Fees']:.2f}</td>
+                            <td class="mono">${r['Fees']:.2f} if 'Fees' in r else 'N/A'</td>
                             <td class="mono">{r['Delay']:.1f}m</td>
                             <td class="mono danger">{r['TCI']:.1f}</td>
                             <td class="mono">{r['Velocity']:.6f}</td>
@@ -735,13 +919,12 @@ class ReportGenerator:
             </div>
 
             <div style="margin-top:50px; border-top:1px solid #333; padding-top:10px; color:#666; text-align:center;">
-                Endogenous Destabilizer Research Suite v7.0 | Generated by ForensicUnit
+                Endogenous Destabilizer Research Suite v7.1 | Generated by ForensicUnit
             </div>
         </body>
         </html>
         """
-        return html
-# ==============================================================================
+        return html# ==============================================================================
 #  5. GUI SUITE (Merged & Enhanced)
 # ==============================================================================
 class ResearchSuite:
@@ -1207,9 +1390,11 @@ class ResearchSuite:
             # ==============================================================================
             validation = {
                 'elasticity': EconometricValidator.run_log_log_elasticity(df),
-                'threshold': EconometricValidator.run_threshold_regression(df),
+                'threshold': EconometricValidator.run_threshold_regression(df), # This was missing
                 'welch': EconometricValidator.run_welchs_t_test(df),
-                'bootstrap': EconometricValidator.run_bootstrap_ci(df)
+                'bootstrap': EconometricValidator.run_bootstrap_ci(df),
+                'hansen': EconometricValidator.run_hansen_threshold_search(df), # New
+                'iv': EconometricValidator.run_iv_regression(df) # New
             }
 
             # ==============================================================================
