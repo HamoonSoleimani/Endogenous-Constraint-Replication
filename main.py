@@ -369,21 +369,23 @@ class ForensicEngine:
             self.df['Div_Score'] = vol_z - org_z
 
     def _calc_utxo_health(self):
-        if 'UTXO' in self.df.columns:
-            self.df['UTXO_Growth'] = self.df['UTXO'].pct_change(30)
-            
-            # Identify Exodus: High Fees + Negative Growth
-            condition_exodus = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] < 0)
-            self.df['Confirmed_Exodus'] = np.where(condition_exodus, 1, 0)
-            
-            # Identify Bloat: High Fees + High Growth
-            condition_bloat = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] > 0.05)
-            self.df['State_Bloat'] = np.where(condition_bloat, 1, 0)
-        else:
-            self.df['UTXO_Growth'] = 0
-            self.df['Confirmed_Exodus'] = 0
-            self.df['State_Bloat'] = 0
-
+            if 'UTXO' in self.df.columns:
+                self.df['UTXO_Growth'] = self.df['UTXO'].pct_change(30)
+                
+                # OLD: Exodus (Users Leaving) -> NEW: V* Contraction (Active User Collapse)
+                # Logic: High Friction + Negative User Growth
+                condition_collapse = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] < 0)
+                self.df['V_Star_Collapse'] = np.where(condition_collapse, 1, 0)
+                
+                # OLD: Bloat (Dust) -> NEW: Z Expansion (Speculative Hoarding)
+                # Logic: High Friction + Positive User Growth = Inelastic Speculative Demand
+                condition_hoarding = (self.df['Regime'] == 'SHOCK') & (self.df['UTXO_Growth'] > 0.05)
+                self.df['Z_Expansion'] = np.where(condition_hoarding, 1, 0)
+            else:
+                self.df['UTXO_Growth'] = 0
+                self.df['V_Star_Collapse'] = 0
+                self.df['Z_Expansion'] = 0
+                
     def _calc_phase_state(self):
         if 'TCI' in self.df.columns:
             self.df['TCI_Log'] = np.log1p(self.df['TCI'])
@@ -629,18 +631,17 @@ class ReportGenerator:
         except:
             fee_mult, tci_mult = 0, 0
 
-        # --- 2. DEEP DIVE: UTXO STRUCTURAL INVERSION LOGIC ---
-        # (Re-calculating specifically for the report to ensure raw data exposure)
+        # --- 2. DEEP DIVE: GARRATT & VAN OORDT MULTIPLIER LOGIC ---
+        # Replaces "UTXO Forensic Architecture" with "Crypto Multiplier Analysis"
         utxo_html = ""
         
         if 'UTXO' in df.columns and 'Realized_Cap' in df.columns:
-            # 1. Structural Break Split (Pre/Post 2023)
+            # 1. Structural Break Split
             df_sorted = df.sort_index()
             pre_2023 = df_sorted[df_sorted.index < '2023-01-01']
             post_2023 = df_sorted[df_sorted.index >= '2023-01-01']
             
-            # Correlation: Friction (TCI) vs UTXO Count Growth
-            # We show the raw Pearson correlation coefficients
+            # Correlation
             if not pre_2023.empty:
                 corr_pre = pre_2023['TCI'].corr(pre_2023['UTXO_Growth'])
             else: corr_pre = 0
@@ -649,88 +650,69 @@ class ReportGenerator:
                 corr_post = post_2023['TCI'].corr(post_2023['UTXO_Growth'])
             else: corr_post = 0
             
-            # 2. Value Dilution (Realized Cap / UTXO Count)
+            # 2. Hoarding Density (Proxy for Z)
             df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
             avg_val_normal = df[df['Regime']=='NORMAL']['Val_Per_UTXO'].mean()
             avg_val_shock = df[df['Regime']=='SHOCK']['Val_Per_UTXO'].mean()
             dilution_abs = avg_val_shock - avg_val_normal
             dilution_pct = (dilution_abs / avg_val_normal) * 100 if avg_val_normal != 0 else 0
             
-            # 3. Zombie Ratio (Volume / UTXO Count)
-            if 'Vol_L1' in df.columns:
-                df['Act_Per_UTXO'] = df['Vol_L1'] / df['UTXO'].replace(0, 1)
-                act_normal = df[df['Regime']=='NORMAL']['Act_Per_UTXO'].mean()
-                act_shock = df[df['Regime']=='SHOCK']['Act_Per_UTXO'].mean()
-                zombie_abs = act_shock - act_normal
-                zombie_pct = (zombie_abs / act_normal) * 100 if act_normal != 0 else 0
-            else:
-                zombie_abs, zombie_pct = 0, 0
-
-            # Logic Verdicts
+            # Logic Verdicts (Updated for Garratt 2023)
             is_inverted = (corr_pre < 0 and corr_post > 0)
-            verdict_corr = '<strong>STRUCTURAL INVERSION DETECTED</strong>' if is_inverted else 'Linear/Non-Inverted'
-            verdict_dilution = '<strong>DUST ACCUMULATION</strong>' if dilution_pct < -5 else 'Healthy Capital Density'
-            verdict_zombie = '<strong>WHALE DIVERGENCE</strong>' if zombie_pct > 20 else 'Organic Scaling'
+            
+            # Verdict 1: Regime Intensification
+            verdict_corr = '<strong>MULTIPLIER EXPANSION ($Z \\uparrow$)</strong>' if is_inverted else 'Linear Relationship'
+            
+            # Verdict 2: Active Velocity (V*) vs Hoarding (Z)
+            # If Val per UTXO drops, small users are entering (V*). If it rises, whales are consolidating (Z).
+            if dilution_pct < -5:
+                verdict_dilution = '<strong>RETAIL FRAGMENTATION ($V^*$ Active)</strong>'
+            elif dilution_pct > 5:
+                verdict_dilution = '<strong>SPECULATIVE CONCENTRATION ($Z$ Dominant)</strong>'
+            else:
+                verdict_dilution = 'Neutral'
 
             utxo_html = f"""
-            <h2>6. Deep Dive: UTXO Forensic Architecture</h2>
-            <p>Isolation of "Adoption" vs. "Bloat" using Pearson Correlation Splits and Unit Economic Densities.</p>
+            <h2>6. Deep Dive: The Crypto Multiplier (Garratt & van Oordt)</h2>
+            <p>Analysis of the shift from Active Velocity ($V^*$) to Speculative Hoarding ($Z$) under friction.</p>
             <table>
                 <thead>
-                    <tr><th>Forensic Metric</th><th>Raw Calculation</th><th>Differential / Slope</th><th>Forensic Verdict</th></tr>
+                    <tr><th>Multiplier Component</th><th>Raw Calculation</th><th>Differential</th><th>Theoretical Implication</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>
-                            <strong>Regime Correlation Split</strong><br>
-                            <span style="color:#888; font-size:10px;">Pearson r: TCI vs. UTXO Growth</span>
+                            <strong>Hoarding Correlation</strong><br>
+                            <span style="color:#888; font-size:10px;">r(Friction, State Growth)</span>
                         </td>
                         <td class="mono">
-                            Pre-2023 r: <span class="{'success' if corr_pre < 0 else 'danger'}">{corr_pre:.5f}</span><br>
-                            Post-2023 r: <span class="{'danger' if corr_post > 0 else 'success'}">{corr_post:.5f}</span>
+                            Monetary Era: <span class="{'success' if corr_pre < 0 else 'danger'}">{corr_pre:.5f}</span><br>
+                            Inelastic Era: <span class="{'danger' if corr_post > 0 else 'success'}">{corr_post:.5f}</span>
                         </td>
                         <td class="mono">
-                            Delta r: {corr_post - corr_pre:+.4f}
+                            Delta: {corr_post - corr_pre:+.4f}
                         </td>
                         <td class="{'danger' if is_inverted else 'mono'}">{verdict_corr}</td>
                     </tr>
                     <tr>
                         <td>
-                            <strong>Capital Density (Dilution)</strong><br>
-                            <span style="color:#888; font-size:10px;">Realized Cap per UTXO</span>
+                            <strong>Capital Concentration ($Z$)</strong><br>
+                            <span style="color:#888; font-size:10px;">Realized Cap per Entity</span>
                         </td>
                         <td class="mono">
                             Normal: ${avg_val_normal:,.2f}<br>
                             Shock: ${avg_val_shock:,.2f}
                         </td>
-                        <td class="mono { 'danger' if dilution_pct < 0 else 'success'}">
-                            {dilution_abs:+,.2f} USD ({dilution_pct:+.2f}%)
+                        <td class="mono { 'danger' if dilution_pct > 0 else 'success'}">
+                            {dilution_pct:+.2f}%
                         </td>
-                        <td class="{ 'danger' if dilution_pct < -5 else 'success'}">{verdict_dilution}</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <strong>Zombie Ratio (Divergence)</strong><br>
-                            <span style="color:#888; font-size:10px;">L1 Volume per UTXO</span>
-                        </td>
-                        <td class="mono">
-                            Normal: ${act_normal:,.2f}<br>
-                            Shock: ${act_shock:,.2f}
-                        </td>
-                        <td class="mono { 'danger' if zombie_pct < 0 else 'success'}">
-                            {zombie_abs:+,.2f} USD ({zombie_pct:+.2f}%)
-                        </td>
-                        <td class="{ 'danger' if zombie_pct > 20 else 'success'}">{verdict_zombie}</td>
+                        <td class="{ 'danger' if dilution_pct > 5 else 'mono'}">{verdict_dilution}</td>
                     </tr>
                 </tbody>
             </table>
             """
-        elif 'UTXO' not in df.columns:
-            utxo_html = "<h2>6. Deep Dive: UTXO Forensics</h2><p style='color:#666;'><em>UTXO Data not loaded. Unit economics cannot be calculated.</em></p>"
-        else:
-             utxo_html = "<h2>6. Deep Dive: UTXO Forensics</h2><p style='color:#666;'><em>Realized Cap data insufficient for unit economic analysis.</em></p>"
 
-        # --- 3. HTML DOCUMENT CONSTRUCTION (FULL DETAIL) ---
+            # --- 3. HTML DOCUMENT CONSTRUCTION (FULL DETAIL) ---
         html = f"""
         <!DOCTYPE html>
         <html>
@@ -1386,10 +1368,11 @@ class ResearchSuite:
                 if 'UTXO' in df.columns:
                     ax.plot(df.index, df['UTXO'], color=THEME["fg"], lw=1, label="UTXO Set Size")
                     ylim = ax.get_ylim()
-                    if 'State_Bloat' in df.columns:
-                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['State_Bloat']==1), color=THEME["l2"], alpha=0.3, label="Inelastic Expansion")
-                    if 'Confirmed_Exodus' in df.columns:
-                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Confirmed_Exodus']==1), color=THEME["shock"], alpha=0.5, label="User Contraction")
+                    # Updated Labels for Garratt (2023)
+                    if 'Z_Expansion' in df.columns: # Was State_Bloat
+                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['Z_Expansion']==1), color=THEME["l2"], alpha=0.3, label="Hoarding ($Z$)")
+                    if 'V_Star_Collapse' in df.columns: # Was Confirmed_Exodus
+                         ax.fill_between(df.index, ylim[0], ylim[1], where=(df['V_Star_Collapse']==1), color=THEME["shock"], alpha=0.5, label="Active Drop ($V^*$)")
                     ax.set_ylabel("Unspent Output Count")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
