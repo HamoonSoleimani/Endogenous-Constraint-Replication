@@ -15,6 +15,7 @@ from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 from mpl_toolkits.mplot3d import Axes3D
 from statsmodels.tsa.stattools import adfuller
+
 # Optional Dependency Check
 try:
     from statsmodels.tsa.stattools import grangercausalitytests
@@ -150,6 +151,7 @@ class DataHandler:
             print(f"Parser Error [{hint}]: {e}")
             return None
         return None
+
 # ==============================================================================
 #  2. FORENSIC ENGINE (Strict Analysis)
 # ==============================================================================
@@ -382,6 +384,7 @@ class ForensicEngine:
             self.df['TCI_Log'] = np.log1p(self.df['TCI'])
         if 'Velocity' in self.df.columns:
             self.df['Vel_Log'] = np.log1p(self.df['Velocity'])
+
 # ==============================================================================
 #  3. ECONOMETRIC VALIDATOR
 # ==============================================================================
@@ -582,7 +585,9 @@ class EconometricValidator:
             diffs = np.mean(shock[idx_s], axis=1) - np.mean(normal[idx_n], axis=1)
             return np.percentile(diffs, 2.5), np.percentile(diffs, 97.5)
         except:
-            return 0.0, 0.0# ==============================================================================
+            return 0.0, 0.0
+
+# ==============================================================================
 #  4. REPORT GENERATOR
 # ==============================================================================
 class ReportGenerator:
@@ -1163,27 +1168,7 @@ class ResearchSuite:
             else:
                 self._log(f"Failed to load {key}")
 
-    # REMOVED: _dummy() method
-
-    def _run(self):
-        if not self.file_map: return
-        self._log("Merging datasets...")
-        try:
-            master = list(self.file_map.values())[0]
-            for d in list(self.file_map.values())[1:]:
-                master = master.join(d, how='outer')
-            self.engine = ForensicEngine(master, self.thresh_scale.get())
-            self._log(f"Analysis Complete. Type: {self.engine.cap_type}")
-            self._plot_visualizations()
-        except Exception as e:
-            self._log(f"Error: {e}")
-            import traceback
-            traceback.print_exc()
-
     # ==========================================================================
-    #  VISUALIZATION SUITE (Strict Mode)
-    # ==========================================================================
-# ==========================================================================
     #  VISUALIZATION SUITE (Strict Mode - Academic Standard)
     # ==========================================================================
     def _plot_visualizations(self):
@@ -1252,7 +1237,7 @@ class ResearchSuite:
                 shock = df[df['Regime']=='SHOCK']
                 if len(norm) > 0: ax.scatter(norm['TCI'], norm['Vel_30d_Change'], s=15, color=THEME["safe"], alpha=0.3, label="Normal")
                 if len(shock) > 0: ax.scatter(shock['TCI'], shock['Vel_30d_Change'], s=30, color=THEME["shock"], alpha=0.8, label="Shock")
-                ax.axvline(thresh, color="white", linestyle="--", alpha=0.5, label="Horizon")
+                ax.axvline(thresh, color="white", linestyle="--", alpha=0.5, label="Threshold")
                 ax.axhline(0, color="white", linestyle="-", alpha=0.1)
                 ax.set_xlabel("Friction (TCI)")
                 ax.set_ylabel("30-Day Velocity Impact (%)")
@@ -1347,7 +1332,8 @@ class ResearchSuite:
                 ax.set_xlabel("Threshold Percentile")
                 ax.set_ylabel("Net Damage (%)")
 
-            def p_event_horizon(ax):
+            # REPLACED FUNCTION (Originally p_event_horizon)
+            def p_saturation_threshold(ax):
                 if 'Mempool' in df.columns and 'Delay' in df.columns:
                     subset = df[(df['Mempool'] > 0) & (df['Delay'] > 0)]
                     if len(subset) > 10:
@@ -1359,7 +1345,8 @@ class ResearchSuite:
                         plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color='white')
                         horizon_x = subset['Mempool'].quantile(0.90)
                         ax.axvline(horizon_x, color=THEME["safe"], linestyle="--", alpha=0.5)
-                        ax.text(horizon_x, subset['Delay'].max(), " Saturation", color=THEME["safe"], fontsize=8)
+                        # Changed "Saturation" to "Stability Limit" per prompt
+                        ax.text(horizon_x, subset['Delay'].max(), " Stability Limit", color=THEME["safe"], fontsize=8)
                         ax.grid(False)
             
             def p_utxo_health(ax):
@@ -1378,15 +1365,15 @@ class ResearchSuite:
             self._log("--- Building Tabs ---")
             create_independent_plot_tab("Regime Scatter", p_regime_scatter)
             create_independent_plot_tab("Probability Collapse", p_prob_collapse)
-            create_independent_plot_tab("Net Utility Contraction", p_damage_box) # Changed Name
+            create_independent_plot_tab("Net Utility Contraction", p_damage_box) 
             create_independent_plot_tab("Shock Timeline", p_timeline)
-            create_independent_plot_tab("Exclusion Barrier", p_bootstrap) # Changed Name
+            create_independent_plot_tab("Exclusion Barrier", p_bootstrap) 
             create_independent_plot_tab("Whale Divergence", p_divergence)
             create_independent_plot_tab("UTXO Structural Health", p_utxo_health)
             create_independent_plot_tab("Phase Hysteresis", p_hysteresis)
             create_independent_plot_tab("Stagflation Matrix", p_stagflation)
             create_independent_plot_tab("Sensitivity Curve", p_sensitivity)
-            create_independent_plot_tab("Event Horizon", p_event_horizon)
+            create_independent_plot_tab("Saturation Threshold", p_saturation_threshold) # RENAMED
             
             self._log("--- VISUALIZATION COMPLETE ---")
             
