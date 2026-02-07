@@ -1168,6 +1168,50 @@ class ResearchSuite:
             else:
                 self._log(f"Failed to load {key}")
 
+    def _run(self):
+            """
+            Master execution method:
+            1. Merges all loaded files.
+            2. Initializes the Forensic Engine.
+            3. Triggers the Visualization Suite.
+            """
+            if not self.file_map:
+                messagebox.showwarning("Data Error", "No data loaded. Please ingest JSON/CSV files first.")
+                return
+
+            self._log("Consolidating datasets...")
+            
+            try:
+                # Merge all loaded dataframes on Date Index (Outer Join)
+                df_final = pd.DataFrame()
+                for key, df_part in self.file_map.items():
+                    if df_final.empty:
+                        df_final = df_part
+                    else:
+                        df_final = df_final.join(df_part, how='outer')
+                
+                # Sort and Clean
+                df_final = df_final.sort_index()
+                
+                # Get threshold from GUI slider
+                p_val = self.thresh_scale.get()
+                
+                # Initialize Forensic Engine
+                self._log(f"Initializing Physics Engine (Threshold: {p_val}%)...")
+                self.engine = ForensicEngine(df_final, threshold_percentile=p_val)
+                
+                self._log(f"Engine Online. Observations: {len(self.engine.df)}")
+                self._log(f"Regime: {self.engine.df['Regime'].value_counts().to_dict()}")
+                
+                # Trigger Visualization
+                self._plot_visualizations()
+                
+            except Exception as e:
+                self._log(f"CRITICAL FAILURE: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                messagebox.showerror("Engine Failure", f"An error occurred during analysis:\n{str(e)}")
+                
     # ==========================================================================
     #  VISUALIZATION SUITE (Strict Mode - Academic Standard)
     # ==========================================================================
