@@ -12,6 +12,31 @@ This repository contains the source code for the **Forensic Econometric Suite** 
 
 Bitcoin operates as a macroeconomic paradox: it combines a fixed monetary schedule with a rigid block weight limit. This research proposes the **Endogenous Constraint Hypothesis**, positing that internal architectural constraints generate a non-linear negative feedback loop between network friction and monetary velocity. This codebase provides the empirical validation tools, including the Transaction Cost Index (TCI) generator, threshold regression validators, and hysteresis topology visualizers.
 
+//
+Critical Financial Inputs (Required for Velocity)
+App Input (Hint)	File to Select	Purpose
+Price	market-price.json	Calculates USD values of BTC metrics.
+Supply	total-bitcoins.json	Calculates Market Cap.
+Volume	estimated-transaction-volume-usd.json	The primary "L1 Flow" metric for Velocity.
+MVRV	mvrv.json (or the long name)	Derives Realized Cap (Cost-basis).
+Friction & Congestion (Required for TCI Score)
+App Input (Hint)	File to Select	Purpose
+Fees	fees-usd-per-transaction.json	Measures direct cost friction.
+Delay	median-confirmation-time.json	Measures latency friction.
+Mempool	mempool-size.json	Physical backlog (used as an IV instrument).
+Structural & Diagnostic Inputs
+App Input (Hint)	File to Select	Purpose
+UTXO	utxo-count.json	Measures the "Crypto Multiplier" (Hoarding).
+Organic	n-unique-addresses.json	Checks for Whale vs. Retail divergence.
+Hashrate	hash-rate.json	Supply-side shock (used as an IV instrument).
+Difficulty	mining-difficulty.json	Network difficulty control variable.
+NVT	nvt.json	Used as a mathematical fallback for Velocity.
+Layer 2 Data (The "Bridge" Fix)
+App Input (Hint)	File to Select	Purpose
+LN_Cap	Lightning_Network_Capacity.csv	Calculates Estimated L2 Volume (The Fix).
+LN_Channels	LN-Channels.csv	Detects Migration Signals during L1 shocks.
+
+///
 ## 🛠 Features
 
 The `main.py` script launches a GUI-based research suite ("Forensic Audit Suite v7.0") that performs the following functions described in the paper:
