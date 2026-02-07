@@ -12,7 +12,6 @@ This repository contains the source code for the **Forensic Econometric Suite** 
 
 Bitcoin operates as a macroeconomic paradox: it combines a fixed monetary schedule with a rigid block weight limit. This research proposes the **Endogenous Constraint Hypothesis**, positing that internal architectural constraints generate a non-linear negative feedback loop between network friction and monetary velocity. This codebase provides the empirical validation tools, including the Transaction Cost Index (TCI) generator, threshold regression validators, and hysteresis topology visualizers.
 
-//
 # Dataset Mapping Guide
 
 To ensure the econometric models (Threshold Regression, IV-2SLS, and L2 Migration) work correctly, you must map the files to the "LOAD" buttons in the Python app as follows:
@@ -52,7 +51,6 @@ To ensure the econometric models (Threshold Regression, IV-2SLS, and L2 Migratio
 | **LN_Channels** | `LN-Channels.csv` | Detects Migration Signals during L1 shocks. |
 
 
-///
 ## 🛠 Features
 
 The `main.py` script launches a GUI-based research suite ("Forensic Audit Suite v7.0") that performs the following functions described in the paper:
