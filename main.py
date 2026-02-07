@@ -181,128 +181,119 @@ class ForensicEngine:
         self._calc_utxo_health()
         self._calc_migration_signal()
         self._calc_phase_state()
-        
+            
     def _apply_logical_fixes(self):
-                """
-                FORENSIC LOGIC ENGINE v8.0 (Bridged Mode)
-                
-                Changes:
-                1. Implements 'Flow-from-Stock' Model (River Financial Benchmark).
-                2. Tracks 'Purchasing Power Velocity' (L1 + L2 Est).
-                3. Detects L2 Migration Signals.
-                """
-                
-                # 1. CAPITALIZATION LOGIC
-                if 'Price' in self.df.columns and 'Supply' in self.df.columns:
-                    self.df['Market_Cap'] = self.df['Price'] * self.df['Supply']
-                    if 'MVRV' in self.df.columns:
-                        self.df['Realized_Cap'] = self.df['Market_Cap'] / self.df['MVRV'].replace(0, np.nan)
-                        self.cap_type = "Verified Realized Cap (MVRV)"
-                    else:
-                        self.df['Realized_Cap'] = self.df['Market_Cap']
-                        self.cap_type = "Market Cap (Weak)"
+        """
+        FORENSIC LOGIC ENGINE v8.1 (Fixed Unit Heuristics & Flow Model)
+        """
+        # 1. CAPITALIZATION LOGIC
+        if 'Price' in self.df.columns and 'Supply' in self.df.columns:
+            self.df['Market_Cap'] = self.df['Price'] * self.df['Supply']
+            if 'MVRV' in self.df.columns:
+                self.df['Realized_Cap'] = self.df['Market_Cap'] / self.df['MVRV'].replace(0, np.nan)
+                self.cap_type = "Verified Realized Cap (MVRV)"
+            else:
+                self.df['Realized_Cap'] = self.df['Market_Cap']
+                self.cap_type = "Market Cap (Weak)"
 
-                # 2. VOLUME & LAYER 2 LOGIC (The "Flow-from-Stock" Fix)
-                
-                # A. Load Layer 1 Volume (Verified On-Chain)
-                if 'Volume' in self.df.columns:
-                    self.df['Vol_L1'] = self.df['Volume']
-                else:
-                    self.df['Vol_L1'] = 0
+        # 2. VOLUME & LAYER 2 LOGIC (The "Flow-from-Stock" Fix)
+        if 'Volume' in self.df.columns:
+            self.df['Vol_L1'] = self.df['Volume']
+        else:
+            self.df['Vol_L1'] = 0
 
-                # B. Calculate Layer 2 Estimated Volume (The Fix)
-                if 'LN_Cap' in self.df.columns:
-                    # --- AUTO-CORRECTION FOR UNITS ---
-                    # Check mean value of Capacity. 
-                    # If mean > 1,000,000, it's likely already in USD (or Sats), not BTC.
-                    cap_mean = self.df['LN_Cap'].mean()
-                    
-                    if cap_mean > 1_000_000:
-                        # Assume data is already in USD (The Parser picked the USD column)
-                        self.df['Cap_L2_USD'] = self.df['LN_Cap']
-                    else:
-                        # Assume data is in BTC (Standard), so convert to USD
-                        if 'Price' in self.df.columns:
-                            self.df['Cap_L2_USD'] = self.df['LN_Cap'] * self.df['Price']
-                        else:
-                            self.df['Cap_L2_USD'] = 0
-
-                    # 2. Apply River Financial Velocity Multiplier (Annual ~7.0 -> Daily ~0.0191)
-                    RIVER_MULTIPLIER_DAILY = 0.019178 
-                    self.df['Vol_L2_Est'] = self.df['Cap_L2_USD'] * RIVER_MULTIPLIER_DAILY
-                    
-                    # 3. Create Total "Purchasing Power" Velocity
-                    self.df['Vol_Total'] = self.df['Vol_L1'] + self.df['Vol_L2_Est']
-                    
-                    # 4. Calculate L2 Rescue Share
-                    # Safety check for divide by zero
-                    self.df['L2_Share'] = (self.df['Vol_L2_Est'] / self.df['Vol_Total'].replace(0, 1)) * 100.0
-                    
-                    self.vol_type = "L1 Verified + L2 Est (River Model)"
-                else:
-                    self.df['Vol_Total'] = self.df['Vol_L1']
-                    self.df['Vol_L2_Est'] = 0
-                    self.df['L2_Share'] = 0
-                    self.vol_type = "L1 Only (L2 Data Missing)"
-
-                # 3. VELOCITY CALCULATION
-                if 'Vol_Total' in self.df.columns and 'Realized_Cap' in self.df.columns:
-                    # Robust Velocity: Uses Verified Volume / Realized Cost Basis
-                    self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap'].replace(0, np.nan)
-                else:
-                    self.df['Vel_Robust'] = np.nan
-
-                if 'NVT' in self.df.columns:
-                    self.df['Vel_Standard'] = 1.0 / self.df['NVT'].replace(0, np.nan)
-                else:
-                    self.df['Vel_Standard'] = np.nan
-
-                self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
-                
-                # 4. MOMENTUM
+        # --- FIX: ROBUST UNIT DETECTION ---
+        if 'LN_Cap' in self.df.columns:
+            # Logic: Total BTC Supply is ~21M. If Capacity > 21M, it MUST be in USD.
+            # Using 25M as a safe buffer against data glitches.
+            cap_mean = self.df['LN_Cap'].mean()
+            
+            if cap_mean > 25_000_000:
+                # Data is in USD
+                self.df['Cap_L2_USD'] = self.df['LN_Cap']
+            else:
+                # Data is in BTC -> Convert to USD
                 if 'Price' in self.df.columns:
-                    self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0)
+                    self.df['Cap_L2_USD'] = self.df['LN_Cap'] * self.df['Price']
                 else:
-                    self.df['Price_Mom'] = 0
+                    self.df['Cap_L2_USD'] = 0
 
-                # CLEANUP
-                cols_to_clean = ['Velocity', 'Realized_Cap', 'Vol_Total', 'Cap_L2_USD']
-                for col in cols_to_clean:
-                    if col in self.df.columns:
-                        self.df[col] = self.df[col].replace([np.inf, -np.inf], np.nan)
-                        
+            # Apply River Financial Velocity Multiplier (Annual ~7.0 -> Daily ~0.0191)
+            RIVER_MULTIPLIER_DAILY = 0.019178 
+            self.df['Vol_L2_Est'] = self.df['Cap_L2_USD'] * RIVER_MULTIPLIER_DAILY
+            
+            # Create Total "Purchasing Power" Velocity
+            self.df['Vol_Total'] = self.df['Vol_L1'] + self.df['Vol_L2_Est']
+            
+            # L2 Rescue Share
+            self.df['L2_Share'] = (self.df['Vol_L2_Est'] / self.df['Vol_Total'].replace(0, 1)) * 100.0
+            self.vol_type = "L1 Verified + L2 Est (River Model)"
+        else:
+            self.df['Vol_Total'] = self.df['Vol_L1']
+            self.df['Vol_L2_Est'] = 0
+            self.df['L2_Share'] = 0
+            self.vol_type = "L1 Only (L2 Data Missing)"
+
+        # 3. VELOCITY CALCULATION
+        if 'Vol_Total' in self.df.columns and 'Realized_Cap' in self.df.columns:
+            self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap'].replace(0, np.nan)
+        else:
+            self.df['Vel_Robust'] = np.nan
+
+        if 'NVT' in self.df.columns:
+            self.df['Vel_Standard'] = 1.0 / self.df['NVT'].replace(0, np.nan)
+        else:
+            self.df['Vel_Standard'] = np.nan
+
+        self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
+        
+        # 4. MOMENTUM
+        if 'Price' in self.df.columns:
+            self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0)
+        else:
+            self.df['Price_Mom'] = 0
+
+        # CLEANUP
+        cols_to_clean = ['Velocity', 'Realized_Cap', 'Vol_Total', 'Cap_L2_USD']
+        for col in cols_to_clean:
+            if col in self.df.columns:
+                self.df[col] = self.df[col].replace([np.inf, -np.inf], np.nan)
+
     def _calc_migration_signal(self):
         """
-        Determines if users are 'Migrating' to L2 or 'Leaving' Crypto.
-        Logic: If L1 Friction is High (Shock), does L2 Channel count grow?
+        FIXED: Removes Time-Trend Bias.
+        Old Logic: Compared Absolute Channel Count (biased because L2 grows over time).
+        New Logic: Compares 7-Day Growth Rate (derivative).
         """
         if 'LN_Channels' not in self.df.columns or 'Regime' not in self.df.columns:
             self.migration_verdict = "N/A (Missing Channel Data)"
             return
 
-        # Look at the Shock Regime periods
-        shock_data = self.df[self.df['Regime'] == 'SHOCK']
-        normal_data = self.df[self.df['Regime'] == 'NORMAL']
+        # Calculate 7-Day Rolling Growth Rate to de-trend the data
+        self.df['Chan_Growth_7d'] = self.df['LN_Channels'].pct_change(7) * 100.0
+
+        shock_data = self.df[self.df['Regime'] == 'SHOCK']['Chan_Growth_7d'].dropna()
+        normal_data = self.df[self.df['Regime'] == 'NORMAL']['Chan_Growth_7d'].dropna()
 
         if shock_data.empty or normal_data.empty:
             self.migration_verdict = "Insufficient Data"
             return
             
-        # Compare Average Channel Count
-        avg_chan_normal = normal_data['LN_Channels'].mean()
-        avg_chan_shock = shock_data['LN_Channels'].mean()
+        # Compare Average Growth Rates
+        avg_growth_normal = normal_data.mean()
+        avg_growth_shock = shock_data.mean()
         
-        # Calculate Delta
-        chan_delta = ((avg_chan_shock - avg_chan_normal) / avg_chan_normal) * 100.0
+        # Forensic Verdict based on RATE of adoption, not total count
+        diff = avg_growth_shock - avg_growth_normal
         
-        if chan_delta > 0:
-            self.migration_verdict = f"POSITIVE MIGRATION (+{chan_delta:.2f}% Channels during Shock)"
+        if avg_growth_shock > avg_growth_normal:
+            self.migration_verdict = f"ACCELERATED MIGRATION (Growth +{diff:.3f}% vs Normal)"
             self.migration_color = "#00ff9d" # Green
-        elif chan_delta > -5:
-            self.migration_verdict = f"RESILIENT (-{abs(chan_delta):.2f}% - Sticky Users)"
+        elif avg_growth_shock > 0:
+            self.migration_verdict = f"RESILIENT GROWTH (+{avg_growth_shock:.3f}%/week)"
             self.migration_color = "#ffea00" # Yellow
         else:
-            self.migration_verdict = f"NETWORK ATROPHY ({chan_delta:.2f}% - Users Quitting)"
+            self.migration_verdict = f"NETWORK ATROPHY (Contraction {avg_growth_shock:.3f}%/week)"
             self.migration_color = "#ff003c" # Red
             
     def _calc_tci(self):
@@ -764,21 +755,28 @@ class ReportGenerator:
             </table>
             """
 
-        # --- 3. L2 MIGRATION & BRIDGE LOGIC (NEW SECTION) ---
+        # --- 3. L2 MIGRATION & BRIDGE LOGIC (CORRECTED) ---
         l2_html = ""
-        # Check if we have calculated migration metrics in the engine
-        migration_verdict = getattr(engine, 'migration_verdict', "N/A (Missing Channel Data)")
+        migration_verdict = getattr(engine, 'migration_verdict', "N/A")
         migration_color = getattr(engine, 'migration_color', "#fff")
         
-        # Calculate summary statistics for the report if L2 data exists
         if 'Vol_L2_Est' in df.columns:
             avg_l2_vol = df['Vol_L2_Est'].mean()
             max_l2_vol = df['Vol_L2_Est'].max()
             avg_l2_share = df['L2_Share'].mean() if 'L2_Share' in df.columns else 0
             
+            # Additional Stats for the Report
+            if 'Chan_Growth_7d' in df.columns:
+                shock_growth = df[df['Regime'] == 'SHOCK']['Chan_Growth_7d'].mean()
+                norm_growth = df[df['Regime'] == 'NORMAL']['Chan_Growth_7d'].mean()
+                growth_delta = shock_growth - norm_growth
+                growth_lbl = f"{shock_growth:+.3f}% (Shock) vs {norm_growth:+.3f}% (Normal)"
+            else:
+                growth_lbl = "N/A"
+
             l2_html = f"""
             <h2>3B. Layer 2 Migration Analysis (The Bridge)</h2>
-            <p>Correcting for the "Closed System Fallacy" using River Financial Flow-from-Stock Model (Multiplier: 0.0191 daily).</p>
+            <p>Correcting for "Closed System Fallacy" via River Financial Model & De-trended Growth Analysis.</p>
             <table>
                 <thead>
                     <tr><th>Migration Metric</th><th>Value / Verdict</th><th>Implication</th></tr>
@@ -790,29 +788,23 @@ class ReportGenerator:
                         <td>Economic activity moved to Lightning, not destroyed.</td>
                     </tr>
                     <tr>
-                        <td><strong>Peak L2 Capacity Flow</strong><br><span class="tiny">Max Daily Estimated Volume</span></td>
-                        <td class="mono">${max_l2_vol:,.2f}</td>
-                        <td>Maximum daily load absorbed by Layer 2.</td>
-                    </tr>
-                    <tr>
                         <td><strong>Velocity Preservation</strong><br><span class="tiny">Avg L2 Share of Total Vol</span></td>
                         <td class="mono">{avg_l2_share:.2f}%</td>
                         <td>Portion of economy immune to L1 friction.</td>
                     </tr>
                     <tr>
-                        <td><strong>Migration Signal</strong><br><span class="tiny">Channel Growth during Shocks</span></td>
+                        <td><strong>Infrastructure Trend</strong><br><span class="tiny">7-Day Channel Growth Rate</span></td>
+                        <td class="mono">{growth_lbl}</td>
+                        <td>Comparative adoption speed during friction events.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Migration Signal</strong><br><span class="tiny">Forensic Verdict</span></td>
                         <td style="color:{migration_color}; font-weight:bold;">{migration_verdict}</td>
-                        <td>Is infrastructure growing when fees spike?</td>
+                        <td>Does friction accelerate or kill L2 adoption?</td>
                     </tr>
                 </tbody>
             </table>
             """
-        else:
-             l2_html = """
-            <h2>3B. Layer 2 Migration Analysis (The Bridge)</h2>
-            <p style="color:#666;"><em>Insufficient Data: Load LN_Cap and LN_Channels to enable this forensic module.</em></p>
-            """
-
 
         # --- 4. HTML DOCUMENT CONSTRUCTION (FULL DETAIL) ---
         html = f"""
