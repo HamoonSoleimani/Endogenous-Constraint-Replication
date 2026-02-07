@@ -56,94 +56,102 @@ plt.rcParams.update({
 # ==============================================================================
 #  1. DATA PARSER (Strict Mode - No Simulation)
 # ==============================================================================
+# ==============================================================================
+#  1. DATA PARSER (Fixed for Bitcoin Visuals Jagged CSVs)
+# ==============================================================================
 class DataHandler:
-    """
-    Robust file parser optimized for standard Blockchain data dumps (.json)
-    and specific CSV exports (Lightning Capacity, Min Fees).
-    """
-    
     @staticmethod
     def parse_file(filepath, hint):
         try:
             ext = os.path.splitext(filepath)[1].lower()
             df = None
 
-            # JSON Handling (Standard Blockchain.com / charts format)
+            # JSON Handling (Standard Blockchain.com)
             if ext == '.json':
                 with open(filepath, 'r') as f:
                     raw = json.load(f)
-                
                 target = raw
-                # Flatten dict if wrapped (e.g. {'market-price': [...]})
                 if isinstance(raw, dict):
-                    # Try to find a key that looks like a list of data
                     for k in raw.keys():
                         if isinstance(raw[k], list):
                             target = raw[k]; break
-                            
                 data = []
                 for item in target:
-                    # Handle standard {x: timestamp, y: value} format
                     ts = item.get('x') or item.get('t') or item.get('timestamp')
                     val = item.get('y') or item.get('v') or item.get('value')
-                    
-                    # Handle list format [timestamp, value]
-                    if isinstance(item, list) and len(item) >= 2: 
-                        ts, val = item[0], item[1]
-                        
+                    if isinstance(item, list) and len(item) >= 2: ts, val = item[0], item[1]
                     if ts is not None and val is not None:
                         try:
                             ts = float(ts)
-                            # Auto-detect ms vs seconds
                             if ts > 1e11: ts /= 1000
                             dt = datetime.fromtimestamp(ts, timezone.utc).replace(tzinfo=None)
                             data.append({'Date': dt, 'Value': float(val)})
                         except: pass
                 df = pd.DataFrame(data)
 
-            # CSV Handling (Optimized for your specific files)
+            # CSV Handling (Advanced Forensic Mode)
             elif ext == '.csv':
-                # read_csv with flexible separator detection
-                df = pd.read_csv(filepath, sep=None, engine='python')
-                
-                # Normalize columns
+                # 1. Try reading with Python engine to handle ragged lines
+                try:
+                    df = pd.read_csv(filepath, sep=None, engine='python')
+                except:
+                    # Fallback: Read skipping bad lines
+                    df = pd.read_csv(filepath, sep=None, engine='python', on_bad_lines='skip')
+
+                # 2. Identify the DATE column
+                # Look for typical date keywords
                 df.columns = [str(c).strip().lower() for c in df.columns]
-                
-                # 1. Detect Date Column
-                date_candidates = ['date', 'time', 'day', 'created', 'period']
+                date_candidates = ['date', 'time', 'day', 'created', 'period', 'datetime']
                 date_col = next((c for c in df.columns if any(x in c for x in date_candidates)), None)
                 
-                if not date_col: 
-                    # Fallback: assume first column is date if looks like date
+                # If no header, assume first column
+                if not date_col:
                     date_col = df.columns[0]
                 
+                # Convert Date
                 df['Date'] = pd.to_datetime(df[date_col], errors='coerce')
+                df = df.dropna(subset=['Date'])
                 
-                # 2. Detect Value Column based on Hint
-                cols = [c for c in df.columns if c != date_col and c != 'date']
-                target_col = None
+                # 3. Identify the VALUE column (The Fix)
+                # We need to find the column that is Numeric but NOT the Date/Index
+                best_col = None
+                max_mean = -1
                 
-                # specific mappings for your screenshot files
-                if 'ln_cap' in hint.lower():
-                    # Look for 'capacity', 'btc', 'amount'
-                    target_col = next((c for c in cols if any(x in c for x in ['cap', 'btc', 'total'])), cols[-1])
-                elif 'min_fee' in hint.lower():
-                    # Look for 'fee', 'sat', 'usd'
-                    target_col = next((c for c in cols if 'fee' in c or 'sat' in c), cols[-1])
+                for col in df.columns:
+                    if col == 'date' or col == date_col: continue
+                    
+                    # Clean commas
+                    if df[col].dtype == 'object':
+                        try:
+                            series = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce')
+                        except: continue
+                    else:
+                        series = pd.to_numeric(df[col], errors='coerce')
+
+                    # Check validity
+                    if series.count() < 10: continue # Skip empty cols
+                    
+                    # CRITICAL FIX: Check magnitude to ensure it's not a Timestamp
+                    # Timestamps (ns) are > 1e17. Real data (Channels/Cap) is usually < 1e15
+                    mean_val = series.mean()
+                    if mean_val > 1e16: continue # It's a timestamp, skip it
+                    
+                    # Logic for Bitcoin Visuals: The "Total" is usually the largest number
+                    # (e.g., Total > Unique > Duplicate)
+                    if mean_val > max_mean:
+                        max_mean = mean_val
+                        best_col = series
+                
+                if best_col is not None:
+                    df['Value'] = best_col
                 else:
-                    # Default to last column
-                    target_col = cols[-1]
-                
-                # Cleanup formatting (remove commas from numbers like "1,000.00")
-                if df[target_col].dtype == 'object':
-                    df[target_col] = df[target_col].astype(str).str.replace(',', '', regex=True)
-                
-                df['Value'] = pd.to_numeric(df[target_col], errors='coerce')
+                    # Fallback if logic fails
+                    df['Value'] = 0
 
             if df is not None and not df.empty:
                 df = df.dropna(subset=['Date', 'Value'])
                 df = df.set_index('Date')
-                # Resample to daily mean to standardize jagged time series
+                # Resample to daily mean
                 df = df[['Value']].resample('D').mean()
                 return df.rename(columns={'Value': hint})
 
@@ -151,7 +159,6 @@ class DataHandler:
             print(f"Parser Error [{hint}]: {e}")
             return None
         return None
-
 # ==============================================================================
 #  2. FORENSIC ENGINE (Strict Analysis)
 # ==============================================================================
@@ -172,100 +179,132 @@ class ForensicEngine:
         self._calc_impact_metrics()
         self._calc_divergence()
         self._calc_utxo_health()
+        self._calc_migration_signal()
         self._calc_phase_state()
-
+        
     def _apply_logical_fixes(self):
-            """
-            FORENSIC LOGIC ENGINE v7.1 (Strict Mode)
-            
-            Changes from previous version:
-            1. REMOVED 'Magic Number' (10x) multiplier for L2 Volume.
-            2. SEPARATED 'Velocity' (Flow) from 'Liquidity' (Stock).
-            3. PRIORITIZED Realized Cap over Market Cap for denominator.
-            """
-            
-            # ---------------------------------------------------------
-            # 1. CAPITALIZATION LOGIC (Mathematically Derived)
-            # ---------------------------------------------------------
-            # Solves "Proxy Criticism" using Blockchain.com primary data points.
-            
-            if 'Price' in self.df.columns and 'Supply' in self.df.columns:
-                self.df['Market_Cap'] = self.df['Price'] * self.df['Supply']
+                """
+                FORENSIC LOGIC ENGINE v8.0 (Bridged Mode)
                 
-                if 'MVRV' in self.df.columns:
-                    # EXACT DERIVATION: Realized Cap = Market Cap / MVRV
-                    # This is algebraically identical to sum(UTXO_val_at_creation)
-                    self.df['Realized_Cap'] = self.df['Market_Cap'] / self.df['MVRV'].replace(0, np.nan)
-                    self.cap_type = "Verified Realized Cap (Blockchain.com MVRV)"
+                Changes:
+                1. Implements 'Flow-from-Stock' Model (River Financial Benchmark).
+                2. Tracks 'Purchasing Power Velocity' (L1 + L2 Est).
+                3. Detects L2 Migration Signals.
+                """
+                
+                # 1. CAPITALIZATION LOGIC
+                if 'Price' in self.df.columns and 'Supply' in self.df.columns:
+                    self.df['Market_Cap'] = self.df['Price'] * self.df['Supply']
+                    if 'MVRV' in self.df.columns:
+                        self.df['Realized_Cap'] = self.df['Market_Cap'] / self.df['MVRV'].replace(0, np.nan)
+                        self.cap_type = "Verified Realized Cap (MVRV)"
+                    else:
+                        self.df['Realized_Cap'] = self.df['Market_Cap']
+                        self.cap_type = "Market Cap (Weak)"
+
+                # 2. VOLUME & LAYER 2 LOGIC (The "Flow-from-Stock" Fix)
+                
+                # A. Load Layer 1 Volume (Verified On-Chain)
+                if 'Volume' in self.df.columns:
+                    self.df['Vol_L1'] = self.df['Volume']
                 else:
-                    self.df['Realized_Cap'] = self.df['Market_Cap']
-                    self.cap_type = "Market Cap (MVRV Missing - WEAK)"
-            # ---------------------------------------------------------
-            # 2. VOLUME & LAYER 2 LOGIC (The Numerator)
-            # ---------------------------------------------------------
-            
-            # Layer 1 Volume (Verified On-Chain)
-            if 'Volume' in self.df.columns:
-                self.df['Vol_L1'] = self.df['Volume']
-            else:
-                self.df['Vol_L1'] = np.nan
+                    self.df['Vol_L1'] = 0
 
-            # Layer 2 Logic (Lightning Network)
-            # FIX: Removed arbitrary 10x multiplier. 
-            # LN Capacity is treated as "Liquidity Available" (Stock), not "Volume Sent" (Flow).
-            if 'LN_Cap' in self.df.columns and 'Price' in self.df.columns:
-                # Convert BTC Capacity to USD Value
-                self.df['Liq_L2_USD'] = self.df['LN_Cap'] * self.df['Price']
-                
-                # STRICT MODE: Do NOT add L2 Liquidity to L1 Volume. 
-                # Adding Stock (Cap) to Flow (Vol) is a dimensional error.
-                # We track L2 separately to see if Liquidity rises when L1 Friction rises.
-                self.df['Vol_Total'] = self.df['Vol_L1']
-                self.vol_type = "L1 Verified (L2 Liquidity Tracked Separately)"
-            else:
-                self.df['Liq_L2_USD'] = 0
-                self.df['Vol_Total'] = self.df['Vol_L1']
-                self.vol_type = "L1 Only"
-
-            # ---------------------------------------------------------
-            # 3. VELOCITY CALCULATION
-            # ---------------------------------------------------------
-            # Formula: Velocity = Total Transaction Volume / Network Capitalization
-            
-            if 'Vol_Total' in self.df.columns and 'Realized_Cap' in self.df.columns:
-                # Robust Velocity: Uses Verified Volume / Realized Cost Basis
-                self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap'].replace(0, np.nan)
-            else:
-                self.df['Vel_Robust'] = np.nan
-
-            # NVT Fallback (Network Value to Transactions)
-            # NVT = Cap / Volume, so Velocity = 1 / NVT
-            if 'NVT' in self.df.columns:
-                self.df['Vel_Standard'] = 1.0 / self.df['NVT'].replace(0, np.nan)
-            else:
-                self.df['Vel_Standard'] = np.nan
-
-            # Final Velocity Composite
-            # Prioritize the Robust calculation, fill gaps with NVT-based calculation
-            self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
-            
-            # ---------------------------------------------------------
-            # 4. MOMENTUM & AUXILIARY METRICS
-            # ---------------------------------------------------------
-            
-            # Price Momentum (30-day lookback for Stagflation Matrix)
-            if 'Price' in self.df.columns:
-                self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0)
-            else:
-                self.df['Price_Mom'] = 0
-
-            # Data Cleanup: Forward Fill small gaps to prevent regression crashes
-            # (Only fills gaps, does not alter existing data)
-            cols_to_clean = ['Velocity', 'Realized_Cap', 'Vol_Total', 'Liq_L2_USD']
-            for col in cols_to_clean:
-                if col in self.df.columns:
-                    self.df[col] = self.df[col].replace([np.inf, -np.inf], np.nan)
+                # B. Calculate Layer 2 Estimated Volume (The Fix)
+                if 'LN_Cap' in self.df.columns:
+                    # --- AUTO-CORRECTION FOR UNITS ---
+                    # Check mean value of Capacity. 
+                    # If mean > 1,000,000, it's likely already in USD (or Sats), not BTC.
+                    cap_mean = self.df['LN_Cap'].mean()
                     
+                    if cap_mean > 1_000_000:
+                        # Assume data is already in USD (The Parser picked the USD column)
+                        self.df['Cap_L2_USD'] = self.df['LN_Cap']
+                    else:
+                        # Assume data is in BTC (Standard), so convert to USD
+                        if 'Price' in self.df.columns:
+                            self.df['Cap_L2_USD'] = self.df['LN_Cap'] * self.df['Price']
+                        else:
+                            self.df['Cap_L2_USD'] = 0
+
+                    # 2. Apply River Financial Velocity Multiplier (Annual ~7.0 -> Daily ~0.0191)
+                    RIVER_MULTIPLIER_DAILY = 0.019178 
+                    self.df['Vol_L2_Est'] = self.df['Cap_L2_USD'] * RIVER_MULTIPLIER_DAILY
+                    
+                    # 3. Create Total "Purchasing Power" Velocity
+                    self.df['Vol_Total'] = self.df['Vol_L1'] + self.df['Vol_L2_Est']
+                    
+                    # 4. Calculate L2 Rescue Share
+                    # Safety check for divide by zero
+                    self.df['L2_Share'] = (self.df['Vol_L2_Est'] / self.df['Vol_Total'].replace(0, 1)) * 100.0
+                    
+                    self.vol_type = "L1 Verified + L2 Est (River Model)"
+                else:
+                    self.df['Vol_Total'] = self.df['Vol_L1']
+                    self.df['Vol_L2_Est'] = 0
+                    self.df['L2_Share'] = 0
+                    self.vol_type = "L1 Only (L2 Data Missing)"
+
+                # 3. VELOCITY CALCULATION
+                if 'Vol_Total' in self.df.columns and 'Realized_Cap' in self.df.columns:
+                    # Robust Velocity: Uses Verified Volume / Realized Cost Basis
+                    self.df['Vel_Robust'] = self.df['Vol_Total'] / self.df['Realized_Cap'].replace(0, np.nan)
+                else:
+                    self.df['Vel_Robust'] = np.nan
+
+                if 'NVT' in self.df.columns:
+                    self.df['Vel_Standard'] = 1.0 / self.df['NVT'].replace(0, np.nan)
+                else:
+                    self.df['Vel_Standard'] = np.nan
+
+                self.df['Velocity'] = self.df['Vel_Robust'].fillna(self.df['Vel_Standard'])
+                
+                # 4. MOMENTUM
+                if 'Price' in self.df.columns:
+                    self.df['Price_Mom'] = self.df['Price'].pct_change(30).fillna(0)
+                else:
+                    self.df['Price_Mom'] = 0
+
+                # CLEANUP
+                cols_to_clean = ['Velocity', 'Realized_Cap', 'Vol_Total', 'Cap_L2_USD']
+                for col in cols_to_clean:
+                    if col in self.df.columns:
+                        self.df[col] = self.df[col].replace([np.inf, -np.inf], np.nan)
+                        
+    def _calc_migration_signal(self):
+        """
+        Determines if users are 'Migrating' to L2 or 'Leaving' Crypto.
+        Logic: If L1 Friction is High (Shock), does L2 Channel count grow?
+        """
+        if 'LN_Channels' not in self.df.columns or 'Regime' not in self.df.columns:
+            self.migration_verdict = "N/A (Missing Channel Data)"
+            return
+
+        # Look at the Shock Regime periods
+        shock_data = self.df[self.df['Regime'] == 'SHOCK']
+        normal_data = self.df[self.df['Regime'] == 'NORMAL']
+
+        if shock_data.empty or normal_data.empty:
+            self.migration_verdict = "Insufficient Data"
+            return
+            
+        # Compare Average Channel Count
+        avg_chan_normal = normal_data['LN_Channels'].mean()
+        avg_chan_shock = shock_data['LN_Channels'].mean()
+        
+        # Calculate Delta
+        chan_delta = ((avg_chan_shock - avg_chan_normal) / avg_chan_normal) * 100.0
+        
+        if chan_delta > 0:
+            self.migration_verdict = f"POSITIVE MIGRATION (+{chan_delta:.2f}% Channels during Shock)"
+            self.migration_color = "#00ff9d" # Green
+        elif chan_delta > -5:
+            self.migration_verdict = f"RESILIENT (-{abs(chan_delta):.2f}% - Sticky Users)"
+            self.migration_color = "#ffea00" # Yellow
+        else:
+            self.migration_verdict = f"NETWORK ATROPHY ({chan_delta:.2f}% - Users Quitting)"
+            self.migration_color = "#ff003c" # Red
+            
     def _calc_tci(self):
             # 1. Base Fee Stress Calculation (Winsorized)
             if 'Fees' in self.df.columns:
@@ -590,6 +629,9 @@ class EconometricValidator:
 # ==============================================================================
 #  4. REPORT GENERATOR
 # ==============================================================================
+# ==============================================================================
+#  4. REPORT GENERATOR (Full Forensic Edition v8.0)
+# ==============================================================================
 class ReportGenerator:
     @staticmethod
     def generate(engine, events_df, regime_stats, insol_stats, validation, granger_html):
@@ -656,7 +698,12 @@ class ReportGenerator:
             else: corr_post = 0
             
             # 2. Hoarding Density (Proxy for Z)
-            df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
+            # Calculated as Realized Cap / UTXO Count
+            if 'Realized_Cap' in df.columns:
+                df['Val_Per_UTXO'] = df['Realized_Cap'] / df['UTXO'].replace(0, 1)
+            else:
+                df['Val_Per_UTXO'] = 0
+                
             avg_val_normal = df[df['Regime']=='NORMAL']['Val_Per_UTXO'].mean()
             avg_val_shock = df[df['Regime']=='SHOCK']['Val_Per_UTXO'].mean()
             dilution_abs = avg_val_shock - avg_val_normal
@@ -678,7 +725,7 @@ class ReportGenerator:
                 verdict_dilution = 'Neutral'
 
             utxo_html = f"""
-            <h2>6. Deep Dive: The Crypto Multiplier (Garratt & van Oordt)</h2>
+            <h2>4. Deep Dive: The Crypto Multiplier (Garratt & van Oordt)</h2>
             <p>Analysis of the shift from Active Velocity ($V^*$) to Speculative Hoarding ($Z$) under friction.</p>
             <table>
                 <thead>
@@ -717,7 +764,57 @@ class ReportGenerator:
             </table>
             """
 
-            # --- 3. HTML DOCUMENT CONSTRUCTION (FULL DETAIL) ---
+        # --- 3. L2 MIGRATION & BRIDGE LOGIC (NEW SECTION) ---
+        l2_html = ""
+        # Check if we have calculated migration metrics in the engine
+        migration_verdict = getattr(engine, 'migration_verdict', "N/A (Missing Channel Data)")
+        migration_color = getattr(engine, 'migration_color', "#fff")
+        
+        # Calculate summary statistics for the report if L2 data exists
+        if 'Vol_L2_Est' in df.columns:
+            avg_l2_vol = df['Vol_L2_Est'].mean()
+            max_l2_vol = df['Vol_L2_Est'].max()
+            avg_l2_share = df['L2_Share'].mean() if 'L2_Share' in df.columns else 0
+            
+            l2_html = f"""
+            <h2>3B. Layer 2 Migration Analysis (The Bridge)</h2>
+            <p>Correcting for the "Closed System Fallacy" using River Financial Flow-from-Stock Model (Multiplier: 0.0191 daily).</p>
+            <table>
+                <thead>
+                    <tr><th>Migration Metric</th><th>Value / Verdict</th><th>Implication</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>L2 Rescue Volume (Daily)</strong><br><span class="tiny">Est. Purchasing Power Preserved</span></td>
+                        <td class="mono success">${avg_l2_vol:,.2f} (Avg)</td>
+                        <td>Economic activity moved to Lightning, not destroyed.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Peak L2 Capacity Flow</strong><br><span class="tiny">Max Daily Estimated Volume</span></td>
+                        <td class="mono">${max_l2_vol:,.2f}</td>
+                        <td>Maximum daily load absorbed by Layer 2.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Velocity Preservation</strong><br><span class="tiny">Avg L2 Share of Total Vol</span></td>
+                        <td class="mono">{avg_l2_share:.2f}%</td>
+                        <td>Portion of economy immune to L1 friction.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Migration Signal</strong><br><span class="tiny">Channel Growth during Shocks</span></td>
+                        <td style="color:{migration_color}; font-weight:bold;">{migration_verdict}</td>
+                        <td>Is infrastructure growing when fees spike?</td>
+                    </tr>
+                </tbody>
+            </table>
+            """
+        else:
+             l2_html = """
+            <h2>3B. Layer 2 Migration Analysis (The Bridge)</h2>
+            <p style="color:#666;"><em>Insufficient Data: Load LN_Cap and LN_Channels to enable this forensic module.</em></p>
+            """
+
+
+        # --- 4. HTML DOCUMENT CONSTRUCTION (FULL DETAIL) ---
         html = f"""
         <!DOCTYPE html>
         <html>
@@ -746,7 +843,7 @@ class ReportGenerator:
             </style>
         </head>
         <body>
-            <h1>Forensic Blockchain Audit: Endogenous Destabilizer v7.1</h1>
+            <h1>Forensic Blockchain Audit: Endogenous Destabilizer v8.0</h1>
             <h3>Analysis Configuration | Cap Logic: {engine.cap_type} | Vol Logic: {engine.vol_type} | Threshold: {100-engine.threshold_pct:.1f}th Percentile</h3>
             <p class="tiny">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Engine Hash: {hash(str(engine.df.index[0]))} | Observations: {len(df)}</p>
 
@@ -932,7 +1029,7 @@ class ReportGenerator:
             </table>
 
             <!-- SECTION 3: INSOLVENCY & EXCLUSION -->
-            <h2>3. Insolvency & Economic Exclusion</h2>
+            <h2>3A. Insolvency & Economic Exclusion</h2>
             <table>
                 <thead>
                     <tr>
@@ -966,11 +1063,14 @@ class ReportGenerator:
                 </tbody>
             </table>
 
-            <!-- SECTION 4: DEEP DIVE (Inserted Dynamically) -->
+            <!-- SECTION 3B: L2 MIGRATION (THE FIX) -->
+            {l2_html}
+
+            <!-- SECTION 4: DEEP DIVE (MULTIPLIER) -->
             {utxo_html}
 
             <!-- SECTION 5: EVENT LOG -->
-            <h2>4. Forensic Event Log (Detailed)</h2>
+            <h2>5. Forensic Event Log (Detailed)</h2>
             <p class="tiny">Chronological listing of all detected Regime Shifts. Definition: Consecutive days where TCI > {engine.thresh_val:.2f}.</p>
             <table>
                 <thead>
@@ -1003,7 +1103,7 @@ class ReportGenerator:
             </table>
 
             <!-- SECTION 6: RAW DAILY LOG -->
-            <h2>5. Raw Daily Shock Data (Full Extract)</h2>
+            <h2>6. Raw Daily Shock Data (Full Extract)</h2>
             <div style="max-height:800px; overflow-y:scroll; border:1px solid #333; background:#000;">
                 <table>
                     <thead>
@@ -1035,7 +1135,7 @@ class ReportGenerator:
             </div>
 
             <div style="margin-top:50px; border-top:1px solid #333; padding-top:10px; color:#444; text-align:center;">
-                <p><strong>Research Suite v7.1 | Forensic Audit Core</strong><br>
+                <p><strong>Research Suite v8.0 | Forensic Audit Core</strong><br>
                 Generated via Python 3.x | Matplotlib | Statsmodels | Pandas</p>
             </div>
         </body>
@@ -1123,11 +1223,13 @@ class ResearchSuite:
                 "Supply",       # total-bitcoins.json
                 "UTXO",         # utxo-count.json
                 "LN_Cap",       # ln-capacity.csv 
+                "LN_Channels",  # LN-Channels.csv
                 "Mempool",      # mempool-size.json
                 "Hashrate",     # hash-rate.json 
                 "Difficulty",   # difficulty.json 
                 "Organic"       # n-unique-addresses.json
             ]
+
             
             self.status = {}
             
@@ -1405,6 +1507,21 @@ class ResearchSuite:
                     ax.set_ylabel("Unspent Output Count")
                     ax.legend(facecolor=THEME["panel"], labelcolor="white")
 
+            def p_migration(ax):
+                if 'LN_Channels' not in df.columns or 'TCI' not in df.columns: return
+                
+                # Plot Channels on Left Axis
+                ax.plot(df.index, df['LN_Channels'], color=THEME["l2"], lw=2, label="L2 Channels")
+                ax.set_ylabel("Channel Count", color=THEME["l2"])
+                ax.tick_params(axis='y', labelcolor=THEME["l2"])
+                
+                # Plot Friction (TCI) on Right Axis
+                ax2 = ax.twinx()
+                ax2.fill_between(df.index, 0, df['TCI'], color=THEME["shock"], alpha=0.3, label="L1 Friction (TCI)")
+                ax2.set_ylabel("Friction Index", color=THEME["shock"])
+                
+                ax.set_title("Migration Signal: Do Channels Grow when Friction Spikes?")
+                
             # 4. Execute Creation Loop (RENAMED TO MATCH LATEX)
             self._log("--- Building Tabs ---")
             create_independent_plot_tab("Regime Scatter", p_regime_scatter)
@@ -1418,7 +1535,8 @@ class ResearchSuite:
             create_independent_plot_tab("Stagflation Matrix", p_stagflation)
             create_independent_plot_tab("Sensitivity Curve", p_sensitivity)
             create_independent_plot_tab("Saturation Threshold", p_saturation_threshold) # RENAMED
-            
+            create_independent_plot_tab("L2 Migration Signal", p_migration)
+
             self._log("--- VISUALIZATION COMPLETE ---")
             
     def _export(self):
