@@ -1,0 +1,1997 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Forensic Audit: Endogenous Destabilizer</title>
+            <style>
+                :root { --bg: #050505; --panel: #121212; --text: #e0e0e0; --accent: #00f0ff; --danger: #ff003c; --success: #00ff9d; --warn: #ffea00; --l2: #9d00ff; }
+                body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; font-size: 12px; max-width: 1600px; margin: 0 auto; }
+                h1 { color: var(--accent); border-bottom: 2px solid var(--danger); padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; font-size: 24px; }
+                h2 { color: #fff; background: linear-gradient(90deg, #1a1a1a, #000); padding: 10px; border-left: 4px solid var(--accent); margin-top: 50px; text-transform: uppercase; font-size: 16px; letter-spacing: 1px; }
+                h3 { color: #888; margin-top: 5px; font-weight: normal; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+                .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
+                .kpi-card { background: var(--panel); padding: 15px; border: 1px solid #333; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+                .kpi-val { font-size: 20px; font-weight: 700; color: #fff; display: block; margin-top: 5px; font-family: 'Consolas', monospace; }
+                .kpi-lbl { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; background: var(--panel); table-layout: fixed; }
+                th { background: #080808; color: var(--accent); padding: 12px 10px; text-align: left; border-bottom: 2px solid #333; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; font-size: 11px; }
+                td { padding: 10px; border-bottom: 1px solid #222; color: #ccc; vertical-align: top; word-wrap: break-word; }
+                tr:nth-child(even) { background-color: #161616; }
+                tr:hover { background-color: #1f1f1f; }
+                .danger { color: var(--danger); font-weight: bold; }
+                .success { color: var(--success); font-weight: bold; }
+                .warn { color: var(--warn); font-weight: bold; }
+                .mono { font-family: 'Consolas', monospace; font-size: 11px; }
+                .tiny { font-size: 10px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <h1>Forensic Blockchain Audit: Endogenous Destabilizer v8.0</h1>
+            <h3>Analysis Configuration | Cap Logic: Verified Realized Cap (MVRV) | Vol Logic: L1 Verified + L2 Est (River Model) | Threshold: 5.0th Percentile</h3>
+            <p class="tiny">Generated: 2026-02-08 00:50:46 | Engine Hash: 131144700619091632 | Observations: 2940</p>
+
+            <!-- EXECUTIVE DASHBOARD -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Shock Events Detected</span>
+                    <span class="kpi-val" style="color:#ff003c">
+                        14
+                    </span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Net Velocity Damage</span>
+                    <span class="kpi-val danger">
+                        -21.6189%
+                    </span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Insolvency Duration</span>
+                    <span class="kpi-val warn">1384 Days</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">IV-2SLS Causality</span>
+                    <span class="kpi-val mono" style="font-size:16px;">
+                        Beta: 0.4417
+                    </span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-lbl">Statistical Confidence</span>
+                    <span class="kpi-val mono" style="font-size:16px;">
+                        p = < 0.0001
+                    </span>
+                </div>
+            </div>
+
+            <!-- SECTION 1: ECONOMETRIC RIGOR -->
+            <h2>1. Econometric Validation (Full Specification)</h2>
+            <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:20px;">
+                
+                <!-- OLS / THRESHOLD -->
+                <div>
+                    <h3 style="color:#fff;">A. Threshold Regression Model (Hansen 2000)</h3>
+                    <table>
+                        <thead><tr><th>Parameter</th><th>Coefficient</th><th>t-Statistic</th><th>Significance (p)</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Beta 1 (Normal Regime Growth)</td>
+                                <td class="success mono">15.6312%</td>
+                                <td class="mono">--</td>
+                                <td class="mono">--</td>
+                            </tr>
+                            <tr>
+                                <td>Beta 2 (Shock Regime Growth)</td>
+                                <td class="warn mono">-5.9877%</td>
+                                <td class="mono">--</td>
+                                <td class="mono">--</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Marginal Impact (S_t)</strong></td>
+                                <td class="danger mono"><strong>-21.6189%</strong></td>
+                                <td class="mono">5.4757</td>
+                                <td class="mono"><strong>< 0.0001</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Optimal Threshold (Min SSR)</td>
+                                <td class="mono">1.6442 TCI</td>
+                                <td class="mono">SSR: 13449026.20</td>
+                                <td class="mono">Optimized</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ELASTICITY & STATIONARITY -->
+                <div>
+                    <h3 style="color:#fff;">B. Time Series Diagnostics</h3>
+                    <table>
+                        <thead><tr><th>Test Specification</th><th>Statistic</th><th>Verdict</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Log-Log Elasticity</strong><br><span class="tiny">Velocity sensitivity to 1% TCI increase</span></td>
+                                <td class="mono">
+                                    Beta: 0.1516<br>
+                                    R²: 0.1133
+                                </td>
+                                <td class="mono">< 0.0001</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ADF Stationarity</strong><br><span class="tiny">H0: Unit Root (Random Walk)</span></td>
+                                <td class="mono">
+                                    ADF: -14.0067<br>
+                                    p: < 0.0001
+                                </td>
+                                <td class="success">
+                                    STATIONARY
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bootstrap CI (5k)</strong><br><span class="tiny">95% Confidence Interval</span></td>
+                                <td class="mono">[-29.12%, -13.65%]</td>
+                                <td class="success">
+                                    ROBUST
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- IV-2SLS TABLE -->
+            <h3 style="margin-top:25px; color:#fff;">C. Endogeneity Correction (IV-2SLS)</h3>
+            <p class="tiny" style="margin-top:0;">Instrument: Lagged Mempool Size (Physical Backlog) | Target: Friction (TCI) | Dependent: Velocity Change</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model Stage</th>
+                        <th>Coefficient / Metric</th>
+                        <th>Standard Error / R²</th>
+                        <th>P-Value</th>
+                        <th>Causal Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Stage 1 (Instrument Strength)</td>
+                        <td class="mono">F-Stat: N/A (See R²)</td>
+                        <td class="mono">R²: 0.3105</td>
+                        <td class="mono">< 0.0001</td>
+                        <td>Relevance of Instrument (Backlog -> Friction)</td>
+                    </tr>
+                    <tr>
+                        <td>Stage 2 (Causal Estimate)</td>
+                        <td class="mono danger"><strong>IV Beta: 0.4417</strong></td>
+                        <td class="mono">--</td>
+                        <td class="mono"><strong>0.20579</strong></td>
+                        <td>Pure Supply-Side Constraint Impact</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 2: STRUCTURAL PHYSICS -->
+            <h2>2. Structural Regime Physics</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Network Metric</th>
+                        <th>Normal Regime (μ)</th>
+                        <th>Shock Regime (μ)</th>
+                        <th>Absolute Delta (Δ)</th>
+                        <th>Multiplier (x)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Transaction Fee (USD)</td>
+                        <td class="mono">$2.96</td>
+                        <td class="danger mono">$17.17</td>
+                        <td class="mono">+$14.21</td>
+                        <td class="warn mono">5.80x</td>
+                    </tr>
+                    <tr>
+                        <td>Latency (Minutes)</td>
+                        <td class="mono">8.82m</td>
+                        <td class="danger mono">11.10m</td>
+                        <td class="mono">+2.27m</td>
+                        <td class="warn mono">1.26x</td>
+                    </tr>
+                    <tr>
+                        <td>Composite Friction (TCI)</td>
+                        <td class="mono">3.47</td>
+                        <td class="danger mono">25.51</td>
+                        <td class="mono">+22.04</td>
+                        <td class="danger mono">7.35x</td>
+                    </tr>
+                    <tr>
+                        <td>Velocity Growth (30d)</td>
+                        <td class="success mono">+15.6312%</td>
+                        <td class="danger mono">-5.9877%</td>
+                        <td class="danger mono"><strong>-21.6189%</strong></td>
+                        <td class="danger mono"><strong>COLLAPSE</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 3: INSOLVENCY & EXCLUSION -->
+            <h2>3A. Insolvency & Economic Exclusion</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric Definition</th>
+                        <th>Computed Value</th>
+                        <th>Economic Implication</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Insolvency Threshold</strong><br><span class="tiny">Wealth Burden (%) limit</span></td>
+                        <td class="mono">0.05</td>
+                        <td>Baseline for Economic Viability</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Days of Exclusion</strong><br><span class="tiny">Count where TCI > Threshold</span></td>
+                        <td class="warn mono">1384 Days</td>
+                        <td>Periods where retail cannot transact economically.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Peak Friction Metric</strong><br><span class="tiny">Max Observed Wealth Burden (%)</span></td>
+                        <td class="danger mono">4.10</td>
+                        <td>Extreme outlier stress event.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stagflation Probability</strong><br><span class="tiny">P(Price <= 0 AND Vel <= 0 | Shock)</span></td>
+                        <td class="danger mono">25.85%</td>
+                        <td>Probability of "Hollow" market conditions.</td>
+                    </tr>
+                    <tr><td><strong>Granger Causality (Volume)</strong></td><td class='mono'>Lag 14 | p=0.0000</td><td style='color:#ff003c; font-weight:bold;'>CONFIRMED</td></tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 3B: L2 MIGRATION (THE FIX) -->
+            
+            <h2>3B. Layer 2 Migration Analysis (The Bridge)</h2>
+            <p>Correcting for "Closed System Fallacy" via River Financial Model & De-trended Growth Analysis.</p>
+            <table>
+                <thead>
+                    <tr><th>Migration Metric</th><th>Value / Verdict</th><th>Implication</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>L2 Rescue Volume (Daily)</strong><br><span class="tiny">Est. Purchasing Power Preserved</span></td>
+                        <td class="mono success">$2,858,161.29 (Avg)</td>
+                        <td>Economic activity moved to Lightning, not destroyed.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Velocity Preservation</strong><br><span class="tiny">Avg L2 Share of Total Vol</span></td>
+                        <td class="mono">0.06%</td>
+                        <td>Portion of economy immune to L1 friction.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Infrastructure Trend</strong><br><span class="tiny">7-Day Channel Growth Rate</span></td>
+                        <td class="mono">+0.571% (Shock) vs +1.866% (Normal)</td>
+                        <td>Comparative adoption speed during friction events.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Migration Signal</strong><br><span class="tiny">Forensic Verdict</span></td>
+                        <td style="color:#ffea00; font-weight:bold;">RESILIENT GROWTH (+0.571%/week)</td>
+                        <td>Does friction accelerate or kill L2 adoption?</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+
+            <!-- SECTION 4: DEEP DIVE (MULTIPLIER) -->
+            
+            <h2>4. Deep Dive: The Crypto Multiplier (Garratt & van Oordt)</h2>
+            <p>Analysis of the shift from Active Velocity ($V^*$) to Speculative Hoarding ($Z$) under friction.</p>
+            <table>
+                <thead>
+                    <tr><th>Multiplier Component</th><th>Raw Calculation</th><th>Differential</th><th>Theoretical Implication</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Hoarding Correlation</strong><br>
+                            <span style="color:#888; font-size:10px;">r(Friction, State Growth)</span>
+                        </td>
+                        <td class="mono">
+                            Monetary Era: <span class="danger">0.12524</span><br>
+                            Inelastic Era: <span class="danger">0.62436</span>
+                        </td>
+                        <td class="mono">
+                            Delta: +0.4991
+                        </td>
+                        <td class="mono">Linear Relationship</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Capital Concentration ($Z$)</strong><br>
+                            <span style="color:#888; font-size:10px;">Realized Cap per Entity</span>
+                        </td>
+                        <td class="mono">
+                            Normal: $3,478.64<br>
+                            Shock: $3,782.54
+                        </td>
+                        <td class="mono danger">
+                            +8.74%
+                        </td>
+                        <td class="danger"><strong>SPECULATIVE CONCENTRATION ($Z$ Dominant)</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+
+            <!-- SECTION 5: EVENT LOG -->
+            <h2>5. Forensic Event Log (Detailed)</h2>
+            <p class="tiny">Chronological listing of all detected Regime Shifts. Definition: Consecutive days where TCI > 20.30.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Dur (Days)</th>
+                        <th>Peak TCI</th>
+                        <th>Avg Fee</th>
+                        <th>Avg Delay</th>
+                        <th>Price Impact</th>
+                        <th>Velocity Impact</th>
+                        <th>Dominant State</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td class="mono">2021-03-30</td>
+                        <td class="mono">2021-05-03</td>
+                        <td class="mono">35</td>
+                        <td class="danger mono">36.20</td>
+                        <td class="mono">$27.67</td>
+                        <td class="mono">11.37m</td>
+                        <td class="mono danger">-0.38%</td>
+                        <td class="mono success"><strong>+0.77%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2023-12-26</td>
+                        <td class="mono">2024-01-04</td>
+                        <td class="mono">10</td>
+                        <td class="danger mono">34.86</td>
+                        <td class="mono">$15.99</td>
+                        <td class="mono">11.86m</td>
+                        <td class="mono success">+0.23%</td>
+                        <td class="mono success"><strong>+32.11%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-02-22</td>
+                        <td class="mono">2021-03-19</td>
+                        <td class="mono">26</td>
+                        <td class="danger mono">34.40</td>
+                        <td class="mono">$20.45</td>
+                        <td class="mono">10.89m</td>
+                        <td class="mono success">+5.16%</td>
+                        <td class="mono danger"><strong>-44.17%</strong></td>
+                        <td>Speculation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-04-24</td>
+                        <td class="mono">2024-05-16</td>
+                        <td class="mono">23</td>
+                        <td class="danger mono">32.88</td>
+                        <td class="mono">$6.88</td>
+                        <td class="mono">10.03m</td>
+                        <td class="mono success">+2.35%</td>
+                        <td class="mono success"><strong>+10.94%</strong></td>
+                        <td>Stagflation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-05-13</td>
+                        <td class="mono">2021-05-29</td>
+                        <td class="mono">17</td>
+                        <td class="danger mono">29.72</td>
+                        <td class="mono">$13.88</td>
+                        <td class="mono">10.53m</td>
+                        <td class="mono danger">-29.65%</td>
+                        <td class="mono danger"><strong>-48.41%</strong></td>
+                        <td>Stagflation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-06-21</td>
+                        <td class="mono">2024-06-27</td>
+                        <td class="mono">7</td>
+                        <td class="danger mono">23.51</td>
+                        <td class="mono">$2.35</td>
+                        <td class="mono">11.18m</td>
+                        <td class="mono danger">-6.99%</td>
+                        <td class="mono success"><strong>+11.46%</strong></td>
+                        <td>Capitulation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-02-11</td>
+                        <td class="mono">2021-02-20</td>
+                        <td class="mono">10</td>
+                        <td class="danger mono">23.17</td>
+                        <td class="mono">$23.60</td>
+                        <td class="mono">11.02m</td>
+                        <td class="mono success">+15.71%</td>
+                        <td class="mono danger"><strong>-0.63%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-03-24</td>
+                        <td class="mono">2021-03-27</td>
+                        <td class="mono">4</td>
+                        <td class="danger mono">22.02</td>
+                        <td class="mono">$13.25</td>
+                        <td class="mono">9.61m</td>
+                        <td class="mono success">+0.45%</td>
+                        <td class="mono success"><strong>+5.32%</strong></td>
+                        <td>Speculation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-01-17</td>
+                        <td class="mono">2024-01-18</td>
+                        <td class="mono">2</td>
+                        <td class="danger mono">21.72</td>
+                        <td class="mono">$9.29</td>
+                        <td class="mono">11.03m</td>
+                        <td class="mono danger">-0.85%</td>
+                        <td class="mono success"><strong>+21.93%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2021-01-11</td>
+                        <td class="mono">2021-01-16</td>
+                        <td class="mono">6</td>
+                        <td class="danger mono">21.65</td>
+                        <td class="mono">$14.18</td>
+                        <td class="mono">17.13m</td>
+                        <td class="mono success">+0.82%</td>
+                        <td class="mono danger"><strong>-67.60%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-06-12</td>
+                        <td class="mono">2024-06-13</td>
+                        <td class="mono">2</td>
+                        <td class="danger mono">21.28</td>
+                        <td class="mono">$6.50</td>
+                        <td class="mono">10.86m</td>
+                        <td class="mono danger">-0.39%</td>
+                        <td class="mono success"><strong>+2.16%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-07-02</td>
+                        <td class="mono">2024-07-03</td>
+                        <td class="mono">2</td>
+                        <td class="danger mono">21.18</td>
+                        <td class="mono">$1.82</td>
+                        <td class="mono">10.75m</td>
+                        <td class="mono success">+0.70%</td>
+                        <td class="mono success"><strong>+21.66%</strong></td>
+                        <td>Capitulation</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2024-01-08</td>
+                        <td class="mono">2024-01-09</td>
+                        <td class="mono">2</td>
+                        <td class="danger mono">21.06</td>
+                        <td class="mono">$9.97</td>
+                        <td class="mono">8.94m</td>
+                        <td class="mono success">+1.50%</td>
+                        <td class="mono success"><strong>+20.38%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">2023-12-20</td>
+                        <td class="mono">2023-12-20</td>
+                        <td class="mono">1</td>
+                        <td class="danger mono">20.89</td>
+                        <td class="mono">$23.99</td>
+                        <td class="mono">9.07m</td>
+                        <td class="mono danger">+0.00%</td>
+                        <td class="mono danger"><strong>+0.00%</strong></td>
+                        <td>Boom</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 6: RAW DAILY LOG -->
+            <h2>6. Raw Daily Shock Data (Full Extract)</h2>
+            <div style="max-height:800px; overflow-y:scroll; border:1px solid #333; background:#000;">
+                <table>
+                    <thead>
+                        <tr style="position:sticky; top:0; background:#000; z-index:10;">
+                            <th>Date</th>
+                            <th>Fee ($)</th>
+                            <th>Delay (m)</th>
+                            <th>Mempool (B)</th>
+                            <th>TCI Score</th>
+                            <th>Velocity</th>
+                            <th>30d Change</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td class="mono">2024-07-03</td>
+                            <td class="mono">$1.79 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.97m</td>
+                            <td class="mono">111344148</td>
+                            <td class="mono danger">21.1792</td>
+                            <td class="mono">0.01980021</td>
+                            <td class="mono danger">-20.0238%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-07-02</td>
+                            <td class="mono">$1.85 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.53m</td>
+                            <td class="mono">111137848</td>
+                            <td class="mono danger">20.3698</td>
+                            <td class="mono">0.01627498</td>
+                            <td class="mono danger">-2.3337%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-27</td>
+                            <td class="mono">$2.68 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.65m</td>
+                            <td class="mono">154586393</td>
+                            <td class="mono danger">20.7496</td>
+                            <td class="mono">0.01128509</td>
+                            <td class="mono success">+27.5909%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-26</td>
+                            <td class="mono">$2.49 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.35m</td>
+                            <td class="mono">150645126</td>
+                            <td class="mono danger">22.1336</td>
+                            <td class="mono">0.01108518</td>
+                            <td class="mono success">+21.6339%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-25</td>
+                            <td class="mono">$2.31 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.06m</td>
+                            <td class="mono">146703860</td>
+                            <td class="mono danger">23.5099</td>
+                            <td class="mono">0.01065439</td>
+                            <td class="mono success">+18.0587%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-24</td>
+                            <td class="mono">$2.13 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.65m</td>
+                            <td class="mono">146448250</td>
+                            <td class="mono danger">22.7119</td>
+                            <td class="mono">0.01002980</td>
+                            <td class="mono success">+3.3302%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-23</td>
+                            <td class="mono">$1.94 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.25m</td>
+                            <td class="mono">146192640</td>
+                            <td class="mono danger">21.9172</td>
+                            <td class="mono">0.00953350</td>
+                            <td class="mono danger">-12.9372%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-22</td>
+                            <td class="mono">$2.29 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.84m</td>
+                            <td class="mono">143961982</td>
+                            <td class="mono danger">21.1257</td>
+                            <td class="mono">0.00904161</td>
+                            <td class="mono danger">-30.5403%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-21</td>
+                            <td class="mono">$2.64 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.43m</td>
+                            <td class="mono">141731324</td>
+                            <td class="mono danger">20.3329</td>
+                            <td class="mono">0.01012513</td>
+                            <td class="mono danger">-58.7656%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-13</td>
+                            <td class="mono">$6.52 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.05m</td>
+                            <td class="mono">98082030</td>
+                            <td class="mono danger">21.2762</td>
+                            <td class="mono">0.01264229</td>
+                            <td class="mono danger">-64.2279%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-06-12</td>
+                            <td class="mono">$6.49 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.68m</td>
+                            <td class="mono">144121693</td>
+                            <td class="mono danger">20.4854</td>
+                            <td class="mono">0.01237465</td>
+                            <td class="mono danger">-45.9364%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-16</td>
+                            <td class="mono">$3.10 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.93m</td>
+                            <td class="mono">183221797</td>
+                            <td class="mono danger">22.4528</td>
+                            <td class="mono">0.01251422</td>
+                            <td class="mono success">+3.8651%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-15</td>
+                            <td class="mono">$3.15 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.02m</td>
+                            <td class="mono">160784191</td>
+                            <td class="mono danger">22.8862</td>
+                            <td class="mono">0.01172167</td>
+                            <td class="mono success">+9.8932%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-14</td>
+                            <td class="mono">$3.21 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.12m</td>
+                            <td class="mono">158624340</td>
+                            <td class="mono danger">23.4245</td>
+                            <td class="mono">0.01091872</td>
+                            <td class="mono success">+15.7855%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-13</td>
+                            <td class="mono">$3.08 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.22m</td>
+                            <td class="mono">156464488</td>
+                            <td class="mono danger">24.0855</td>
+                            <td class="mono">0.01010469</td>
+                            <td class="mono success">+22.4645%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-12</td>
+                            <td class="mono">$2.95 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.32m</td>
+                            <td class="mono">154304636</td>
+                            <td class="mono danger">24.8851</td>
+                            <td class="mono">0.00982658</td>
+                            <td class="mono success">+23.1965%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-11</td>
+                            <td class="mono">$2.83 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.98m</td>
+                            <td class="mono">161866528</td>
+                            <td class="mono danger">27.2469</td>
+                            <td class="mono">0.00926584</td>
+                            <td class="mono success">+27.7483%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-10</td>
+                            <td class="mono">$2.70 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.65m</td>
+                            <td class="mono">169428420</td>
+                            <td class="mono danger">29.3240</td>
+                            <td class="mono">0.00871296</td>
+                            <td class="mono success">+38.3994%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-09</td>
+                            <td class="mono">$3.28 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.32m</td>
+                            <td class="mono">168444117</td>
+                            <td class="mono danger">31.1716</td>
+                            <td class="mono">0.00816696</td>
+                            <td class="mono success">+50.2448%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-08</td>
+                            <td class="mono">$3.85 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.98m</td>
+                            <td class="mono">167459815</td>
+                            <td class="mono danger">32.8798</td>
+                            <td class="mono">0.00685202</td>
+                            <td class="mono success">+82.1729%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-07</td>
+                            <td class="mono">$4.43 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.11m</td>
+                            <td class="mono">168991699</td>
+                            <td class="mono danger">30.6542</td>
+                            <td class="mono">0.00555171</td>
+                            <td class="mono success">+128.6590%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-06</td>
+                            <td class="mono">$5.00 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.23m</td>
+                            <td class="mono">170523583</td>
+                            <td class="mono danger">28.4349</td>
+                            <td class="mono">0.00423456</td>
+                            <td class="mono success">+141.2142%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-05</td>
+                            <td class="mono">$4.67 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.36m</td>
+                            <td class="mono">160977493</td>
+                            <td class="mono danger">26.2201</td>
+                            <td class="mono">0.00290075</td>
+                            <td class="mono success">+167.0478%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-04</td>
+                            <td class="mono">$4.34 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.48m</td>
+                            <td class="mono">151431404</td>
+                            <td class="mono danger">24.0040</td>
+                            <td class="mono">0.00595975</td>
+                            <td class="mono danger">-11.6077%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-03</td>
+                            <td class="mono">$4.01 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.44m</td>
+                            <td class="mono">141885314</td>
+                            <td class="mono danger">23.8957</td>
+                            <td class="mono">0.00887356</td>
+                            <td class="mono danger">-68.6915%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-02</td>
+                            <td class="mono">$3.68 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.40m</td>
+                            <td class="mono">134205331</td>
+                            <td class="mono danger">23.7833</td>
+                            <td class="mono">0.01164919</td>
+                            <td class="mono danger">-58.8479%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-05-01</td>
+                            <td class="mono">$4.50 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.36m</td>
+                            <td class="mono">126525347</td>
+                            <td class="mono danger">23.6661</td>
+                            <td class="mono">0.01428781</td>
+                            <td class="mono danger">-52.3305%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-30</td>
+                            <td class="mono">$5.32 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.32m</td>
+                            <td class="mono">125551679</td>
+                            <td class="mono danger">23.5542</td>
+                            <td class="mono">0.01222267</td>
+                            <td class="mono danger">-27.7375%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-29</td>
+                            <td class="mono">$6.14 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.07m</td>
+                            <td class="mono">124578010</td>
+                            <td class="mono danger">22.9247</td>
+                            <td class="mono">0.01010344</td>
+                            <td class="mono success">+7.4709%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-28</td>
+                            <td class="mono">$6.97 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.82m</td>
+                            <td class="mono">122916781</td>
+                            <td class="mono danger">22.2981</td>
+                            <td class="mono">0.00791430</td>
+                            <td class="mono success">+13.8748%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-27</td>
+                            <td class="mono">$12.27 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.57m</td>
+                            <td class="mono">121255552</td>
+                            <td class="mono danger">21.6718</td>
+                            <td class="mono">0.00565575</td>
+                            <td class="mono success">+26.9812%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-26</td>
+                            <td class="mono">$17.58 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.32m</td>
+                            <td class="mono">119594323</td>
+                            <td class="mono danger">20.9950</td>
+                            <td class="mono">0.00748439</td>
+                            <td class="mono danger">-28.6915%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-25</td>
+                            <td class="mono">$22.89 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.31m</td>
+                            <td class="mono">77725579</td>
+                            <td class="mono danger">20.7715</td>
+                            <td class="mono">0.00936032</td>
+                            <td class="mono danger">-62.8402%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-04-24</td>
+                            <td class="mono">$28.20 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.30m</td>
+                            <td class="mono">35856835</td>
+                            <td class="mono danger">20.3012</td>
+                            <td class="mono">0.01127990</td>
+                            <td class="mono danger">-34.5138%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-18</td>
+                            <td class="mono">$8.70 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.06m</td>
+                            <td class="mono">317080296</td>
+                            <td class="mono danger">20.9922</td>
+                            <td class="mono">0.02071835</td>
+                            <td class="mono danger">-23.1477%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-17</td>
+                            <td class="mono">$9.88 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.00m</td>
+                            <td class="mono">310332686</td>
+                            <td class="mono danger">21.7178</td>
+                            <td class="mono">0.01699251</td>
+                            <td class="mono success">+10.3498%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-09</td>
+                            <td class="mono">$10.08 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.03m</td>
+                            <td class="mono">325724605</td>
+                            <td class="mono danger">21.0565</td>
+                            <td class="mono">0.01600503</td>
+                            <td class="mono danger">-27.4339%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-08</td>
+                            <td class="mono">$9.86 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.85m</td>
+                            <td class="mono">310949292</td>
+                            <td class="mono danger">20.6633</td>
+                            <td class="mono">0.01329496</td>
+                            <td class="mono danger">-1.4153%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-04</td>
+                            <td class="mono">$12.00 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.82m</td>
+                            <td class="mono">185173667</td>
+                            <td class="mono danger">23.7662</td>
+                            <td class="mono">0.01200455</td>
+                            <td class="mono danger">-63.2158%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-03</td>
+                            <td class="mono">$12.79 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.31m</td>
+                            <td class="mono">148016444</td>
+                            <td class="mono danger">27.5461</td>
+                            <td class="mono">0.01412474</td>
+                            <td class="mono danger">-35.4607%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-02</td>
+                            <td class="mono">$14.81 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.80m</td>
+                            <td class="mono">124846667</td>
+                            <td class="mono danger">31.1539</td>
+                            <td class="mono">0.01591115</td>
+                            <td class="mono danger">-12.9523%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2024-01-01</td>
+                            <td class="mono">$16.84 if 'Fees' in r else '-'</td>
+                            <td class="mono">14.28m</td>
+                            <td class="mono">101676889</td>
+                            <td class="mono danger">34.8558</td>
+                            <td class="mono">0.01639824</td>
+                            <td class="mono success">+13.4650%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-31</td>
+                            <td class="mono">$18.86 if 'Fees' in r else '-'</td>
+                            <td class="mono">13.66m</td>
+                            <td class="mono">78507111</td>
+                            <td class="mono danger">33.6549</td>
+                            <td class="mono">0.01656463</td>
+                            <td class="mono success">+41.1681%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-30</td>
+                            <td class="mono">$20.88 if 'Fees' in r else '-'</td>
+                            <td class="mono">13.03m</td>
+                            <td class="mono">65778032</td>
+                            <td class="mono danger">32.2295</td>
+                            <td class="mono">0.01671008</td>
+                            <td class="mono success">+38.0429%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-29</td>
+                            <td class="mono">$18.90 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.41m</td>
+                            <td class="mono">53048953</td>
+                            <td class="mono danger">30.5914</td>
+                            <td class="mono">0.01724920</td>
+                            <td class="mono success">+30.9481%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-28</td>
+                            <td class="mono">$16.93 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.78m</td>
+                            <td class="mono">130192384</td>
+                            <td class="mono danger">28.9847</td>
+                            <td class="mono">0.01449547</td>
+                            <td class="mono success">+52.5222%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-27</td>
+                            <td class="mono">$14.95 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.43m</td>
+                            <td class="mono">207335815</td>
+                            <td class="mono danger">25.6282</td>
+                            <td class="mono">0.01180606</td>
+                            <td class="mono success">+83.2199%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-26</td>
+                            <td class="mono">$12.97 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.08m</td>
+                            <td class="mono">203509512</td>
+                            <td class="mono danger">22.3052</td>
+                            <td class="mono">0.00908695</td>
+                            <td class="mono success">+140.3478%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2023-12-20</td>
+                            <td class="mono">$23.99 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.07m</td>
+                            <td class="mono">179303808</td>
+                            <td class="mono danger">20.8919</td>
+                            <td class="mono">0.00914708</td>
+                            <td class="mono success">+128.1612%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-29</td>
+                            <td class="mono">$8.73 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.87m</td>
+                            <td class="mono">52911975</td>
+                            <td class="mono danger">21.9099</td>
+                            <td class="mono">0.01462584</td>
+                            <td class="mono danger">-34.3858%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-28</td>
+                            <td class="mono">$10.24 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.45m</td>
+                            <td class="mono">69335769</td>
+                            <td class="mono danger">23.7488</td>
+                            <td class="mono">0.01467391</td>
+                            <td class="mono danger">-30.5756%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-27</td>
+                            <td class="mono">$11.74 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.27m</td>
+                            <td class="mono">75427777</td>
+                            <td class="mono danger">24.2030</td>
+                            <td class="mono">0.01593969</td>
+                            <td class="mono danger">-32.4851%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-26</td>
+                            <td class="mono">$13.25 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.09m</td>
+                            <td class="mono">81519785</td>
+                            <td class="mono danger">24.6464</td>
+                            <td class="mono">0.01722278</td>
+                            <td class="mono danger">-34.2724%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-25</td>
+                            <td class="mono">$14.23 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.91m</td>
+                            <td class="mono">75270101</td>
+                            <td class="mono danger">25.0663</td>
+                            <td class="mono">0.01852452</td>
+                            <td class="mono danger">-38.5962%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-24</td>
+                            <td class="mono">$15.20 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.72m</td>
+                            <td class="mono">69020416</td>
+                            <td class="mono danger">25.3932</td>
+                            <td class="mono">0.01984656</td>
+                            <td class="mono danger">-42.4425%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-23</td>
+                            <td class="mono">$16.18 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.91m</td>
+                            <td class="mono">75008390</td>
+                            <td class="mono danger">26.5179</td>
+                            <td class="mono">0.02375630</td>
+                            <td class="mono danger">-49.3876%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-22</td>
+                            <td class="mono">$17.16 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.09m</td>
+                            <td class="mono">80996363</td>
+                            <td class="mono danger">27.6098</td>
+                            <td class="mono">0.02781084</td>
+                            <td class="mono danger">-54.5704%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-21</td>
+                            <td class="mono">$16.22 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.27m</td>
+                            <td class="mono">77611774</td>
+                            <td class="mono danger">28.6698</td>
+                            <td class="mono">0.03200321</td>
+                            <td class="mono danger">-62.6490%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-20</td>
+                            <td class="mono">$15.28 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.45m</td>
+                            <td class="mono">74227184</td>
+                            <td class="mono danger">29.7220</td>
+                            <td class="mono">0.03632717</td>
+                            <td class="mono danger">-69.0581%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-19</td>
+                            <td class="mono">$14.34 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.14m</td>
+                            <td class="mono">70842595</td>
+                            <td class="mono danger">29.4545</td>
+                            <td class="mono">0.03064232</td>
+                            <td class="mono danger">-65.7443%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-18</td>
+                            <td class="mono">$13.41 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.83m</td>
+                            <td class="mono">53252957</td>
+                            <td class="mono danger">29.1093</td>
+                            <td class="mono">0.02520191</td>
+                            <td class="mono danger">-63.0964%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-17</td>
+                            <td class="mono">$13.51 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.52m</td>
+                            <td class="mono">35663319</td>
+                            <td class="mono danger">28.6749</td>
+                            <td class="mono">0.02012289</td>
+                            <td class="mono danger">-59.9992%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-16</td>
+                            <td class="mono">$13.62 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.21m</td>
+                            <td class="mono">40046449</td>
+                            <td class="mono danger">28.1693</td>
+                            <td class="mono">0.01534912</td>
+                            <td class="mono danger">-55.7816%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-15</td>
+                            <td class="mono">$13.73 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.33m</td>
+                            <td class="mono">44429579</td>
+                            <td class="mono danger">26.0082</td>
+                            <td class="mono">0.01967635</td>
+                            <td class="mono danger">-71.9813%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-14</td>
+                            <td class="mono">$13.84 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.45m</td>
+                            <td class="mono">37749200</td>
+                            <td class="mono danger">23.7514</td>
+                            <td class="mono">0.02381811</td>
+                            <td class="mono danger">-82.2562%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-13</td>
+                            <td class="mono">$15.18 if 'Fees' in r else '-'</td>
+                            <td class="mono">7.57m</td>
+                            <td class="mono">31068822</td>
+                            <td class="mono danger">21.4076</td>
+                            <td class="mono">0.02834834</td>
+                            <td class="mono danger">-79.1465%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-03</td>
+                            <td class="mono">$20.42 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.20m</td>
+                            <td class="mono">81142085</td>
+                            <td class="mono danger">23.2548</td>
+                            <td class="mono">0.02130936</td>
+                            <td class="mono danger">-41.9073%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-02</td>
+                            <td class="mono">$20.56 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.25m</td>
+                            <td class="mono">84228446</td>
+                            <td class="mono danger">26.2601</td>
+                            <td class="mono">0.02218953</td>
+                            <td class="mono danger">-34.7436%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-05-01</td>
+                            <td class="mono">$22.13 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.30m</td>
+                            <td class="mono">87314806</td>
+                            <td class="mono danger">29.2504</td>
+                            <td class="mono">0.02310567</td>
+                            <td class="mono danger">-37.1187%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-30</td>
+                            <td class="mono">$23.71 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.35m</td>
+                            <td class="mono">86871809</td>
+                            <td class="mono danger">32.1953</td>
+                            <td class="mono">0.02348014</td>
+                            <td class="mono danger">-37.9151%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-29</td>
+                            <td class="mono">$25.28 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.80m</td>
+                            <td class="mono">86428812</td>
+                            <td class="mono danger">33.3551</td>
+                            <td class="mono">0.02293579</td>
+                            <td class="mono danger">-36.2314%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-28</td>
+                            <td class="mono">$26.86 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.24m</td>
+                            <td class="mono">85935556</td>
+                            <td class="mono danger">34.4198</td>
+                            <td class="mono">0.02238590</td>
+                            <td class="mono danger">-34.4502%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-27</td>
+                            <td class="mono">$27.40 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.69m</td>
+                            <td class="mono">85442301</td>
+                            <td class="mono danger">35.3513</td>
+                            <td class="mono">0.02182990</td>
+                            <td class="mono danger">-26.9823%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-26</td>
+                            <td class="mono">$27.94 if 'Fees' in r else '-'</td>
+                            <td class="mono">13.14m</td>
+                            <td class="mono">84949045</td>
+                            <td class="mono danger">36.1985</td>
+                            <td class="mono">0.02112575</td>
+                            <td class="mono danger">-18.4750%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-25</td>
+                            <td class="mono">$28.48 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.52m</td>
+                            <td class="mono">78917497</td>
+                            <td class="mono danger">34.0496</td>
+                            <td class="mono">0.02133687</td>
+                            <td class="mono danger">-13.1807%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-24</td>
+                            <td class="mono">$29.02 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.90m</td>
+                            <td class="mono">72885950</td>
+                            <td class="mono danger">31.8761</td>
+                            <td class="mono">0.02149758</td>
+                            <td class="mono danger">-7.6800%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-23</td>
+                            <td class="mono">$36.73 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.28m</td>
+                            <td class="mono">73652175</td>
+                            <td class="mono danger">29.6972</td>
+                            <td class="mono">0.02161106</td>
+                            <td class="mono success">+9.9266%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-22</td>
+                            <td class="mono">$44.44 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.67m</td>
+                            <td class="mono">74418401</td>
+                            <td class="mono danger">27.5273</td>
+                            <td class="mono">0.02285895</td>
+                            <td class="mono success">+21.6628%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-21</td>
+                            <td class="mono">$52.15 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.70m</td>
+                            <td class="mono">74085428</td>
+                            <td class="mono danger">29.5522</td>
+                            <td class="mono">0.02519226</td>
+                            <td class="mono success">+27.0359%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-20</td>
+                            <td class="mono">$59.86 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.74m</td>
+                            <td class="mono">73752455</td>
+                            <td class="mono danger">31.4237</td>
+                            <td class="mono">0.02753476</td>
+                            <td class="mono success">+31.9320%</td>
+                            <td class="tiny">Capitulation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-19</td>
+                            <td class="mono">$54.74 if 'Fees' in r else '-'</td>
+                            <td class="mono">13.77m</td>
+                            <td class="mono">73419482</td>
+                            <td class="mono danger">33.1726</td>
+                            <td class="mono">0.02988587</td>
+                            <td class="mono success">+2.5311%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-18</td>
+                            <td class="mono">$49.63 if 'Fees' in r else '-'</td>
+                            <td class="mono">14.81m</td>
+                            <td class="mono">73244679</td>
+                            <td class="mono danger">34.8416</td>
+                            <td class="mono">0.03231938</td>
+                            <td class="mono danger">-22.0223%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-17</td>
+                            <td class="mono">$44.51 if 'Fees' in r else '-'</td>
+                            <td class="mono">13.83m</td>
+                            <td class="mono">73069876</td>
+                            <td class="mono danger">31.8555</td>
+                            <td class="mono">0.03118963</td>
+                            <td class="mono danger">-35.4821%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-16</td>
+                            <td class="mono">$39.39 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.85m</td>
+                            <td class="mono">76422331</td>
+                            <td class="mono danger">28.9356</td>
+                            <td class="mono">0.02999392</td>
+                            <td class="mono danger">-48.8259%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-15</td>
+                            <td class="mono">$34.28 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.88m</td>
+                            <td class="mono">79774786</td>
+                            <td class="mono danger">26.0816</td>
+                            <td class="mono">0.02873505</td>
+                            <td class="mono danger">-31.5249%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-14</td>
+                            <td class="mono">$29.17 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.90m</td>
+                            <td class="mono">80957292</td>
+                            <td class="mono danger">23.2921</td>
+                            <td class="mono">0.02741547</td>
+                            <td class="mono danger">-13.1217%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-13</td>
+                            <td class="mono">$24.06 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.82m</td>
+                            <td class="mono">82139798</td>
+                            <td class="mono danger">22.4236</td>
+                            <td class="mono">0.02522842</td>
+                            <td class="mono success">+12.3667%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-12</td>
+                            <td class="mono">$18.95 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.74m</td>
+                            <td class="mono">82238901</td>
+                            <td class="mono danger">22.0420</td>
+                            <td class="mono">0.02300149</td>
+                            <td class="mono success">+42.8691%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-11</td>
+                            <td class="mono">$18.92 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.66m</td>
+                            <td class="mono">82338003</td>
+                            <td class="mono danger">22.0776</td>
+                            <td class="mono">0.02073230</td>
+                            <td class="mono success">+38.1865%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-10</td>
+                            <td class="mono">$18.88 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.58m</td>
+                            <td class="mono">82437106</td>
+                            <td class="mono danger">22.0945</td>
+                            <td class="mono">0.01853410</td>
+                            <td class="mono success">+25.9510%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-09</td>
+                            <td class="mono">$18.84 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.44m</td>
+                            <td class="mono">84135981</td>
+                            <td class="mono danger">21.9498</td>
+                            <td class="mono">0.02233858</td>
+                            <td class="mono danger">-19.6439%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-08</td>
+                            <td class="mono">$18.80 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.29m</td>
+                            <td class="mono">85834856</td>
+                            <td class="mono danger">21.6746</td>
+                            <td class="mono">0.02606714</td>
+                            <td class="mono danger">-52.1629%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-07</td>
+                            <td class="mono">$18.05 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.14m</td>
+                            <td class="mono">84897740</td>
+                            <td class="mono danger">21.3194</td>
+                            <td class="mono">0.02972082</td>
+                            <td class="mono danger">-51.5330%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-06</td>
+                            <td class="mono">$17.29 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.99m</td>
+                            <td class="mono">83960624</td>
+                            <td class="mono danger">20.9558</td>
+                            <td class="mono">0.03384018</td>
+                            <td class="mono danger">-51.8333%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-05</td>
+                            <td class="mono">$16.53 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.45m</td>
+                            <td class="mono">84416220</td>
+                            <td class="mono danger">21.8839</td>
+                            <td class="mono">0.03056410</td>
+                            <td class="mono danger">-40.6030%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-04</td>
+                            <td class="mono">$15.77 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.91m</td>
+                            <td class="mono">84871817</td>
+                            <td class="mono danger">22.8245</td>
+                            <td class="mono">0.02720441</td>
+                            <td class="mono danger">-24.7804%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-03</td>
+                            <td class="mono">$16.35 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.37m</td>
+                            <td class="mono">85327414</td>
+                            <td class="mono danger">23.8081</td>
+                            <td class="mono">0.02376119</td>
+                            <td class="mono danger">-10.3186%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-02</td>
+                            <td class="mono">$16.94 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.82m</td>
+                            <td class="mono">85272619</td>
+                            <td class="mono danger">24.8439</td>
+                            <td class="mono">0.02005277</td>
+                            <td class="mono success">+10.6557%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-04-01</td>
+                            <td class="mono">$17.52 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.23m</td>
+                            <td class="mono">85217825</td>
+                            <td class="mono danger">23.7309</td>
+                            <td class="mono">0.02040776</td>
+                            <td class="mono success">+13.2200%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-31</td>
+                            <td class="mono">$18.10 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.63m</td>
+                            <td class="mono">84956627</td>
+                            <td class="mono danger">22.5204</td>
+                            <td class="mono">0.02077210</td>
+                            <td class="mono success">+13.0369%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-30</td>
+                            <td class="mono">$16.75 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.03m</td>
+                            <td class="mono">84695429</td>
+                            <td class="mono danger">21.2403</td>
+                            <td class="mono">0.02114613</td>
+                            <td class="mono success">+8.4633%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-27</td>
+                            <td class="mono">$12.72 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.67m</td>
+                            <td class="mono">99670176</td>
+                            <td class="mono danger">20.5568</td>
+                            <td class="mono">0.02219777</td>
+                            <td class="mono danger">-4.8294%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-26</td>
+                            <td class="mono">$13.07 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.78m</td>
+                            <td class="mono">96324181</td>
+                            <td class="mono danger">21.1050</td>
+                            <td class="mono">0.02339420</td>
+                            <td class="mono danger">-8.7942%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-25</td>
+                            <td class="mono">$13.43 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.90m</td>
+                            <td class="mono">92978186</td>
+                            <td class="mono danger">22.0152</td>
+                            <td class="mono">0.02463775</td>
+                            <td class="mono danger">-12.7453%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-24</td>
+                            <td class="mono">$13.78 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.10m</td>
+                            <td class="mono">90260991</td>
+                            <td class="mono danger">20.8917</td>
+                            <td class="mono">0.02107577</td>
+                            <td class="mono success">+2.5398%</td>
+                            <td class="tiny">Stagflation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-19</td>
+                            <td class="mono">$21.68 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.68m</td>
+                            <td class="mono">78437087</td>
+                            <td class="mono danger">21.7280</td>
+                            <td class="mono">0.01652067</td>
+                            <td class="mono success">+95.6300%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-18</td>
+                            <td class="mono">$21.78 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.67m</td>
+                            <td class="mono">78366784</td>
+                            <td class="mono danger">24.2004</td>
+                            <td class="mono">0.01872622</td>
+                            <td class="mono success">+66.5559%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-17</td>
+                            <td class="mono">$21.88 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.65m</td>
+                            <td class="mono">77700990</td>
+                            <td class="mono danger">26.6134</td>
+                            <td class="mono">0.02091751</td>
+                            <td class="mono success">+43.3915%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-16</td>
+                            <td class="mono">$21.98 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.40m</td>
+                            <td class="mono">77035195</td>
+                            <td class="mono danger">28.3901</td>
+                            <td class="mono">0.02058060</td>
+                            <td class="mono success">+39.6220%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-15</td>
+                            <td class="mono">$22.09 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.15m</td>
+                            <td class="mono">77360084</td>
+                            <td class="mono danger">30.2248</td>
+                            <td class="mono">0.02064817</td>
+                            <td class="mono success">+32.7743%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-14</td>
+                            <td class="mono">$21.95 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.90m</td>
+                            <td class="mono">77684973</td>
+                            <td class="mono danger">32.1960</td>
+                            <td class="mono">0.02071288</td>
+                            <td class="mono success">+21.8006%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-13</td>
+                            <td class="mono">$21.81 if 'Fees' in r else '-'</td>
+                            <td class="mono">13.65m</td>
+                            <td class="mono">79964059</td>
+                            <td class="mono danger">34.4026</td>
+                            <td class="mono">0.02077425</td>
+                            <td class="mono success">+10.7211%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-12</td>
+                            <td class="mono">$21.67 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.80m</td>
+                            <td class="mono">82243145</td>
+                            <td class="mono danger">32.7605</td>
+                            <td class="mono">0.02233485</td>
+                            <td class="mono danger">-7.1751%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-11</td>
+                            <td class="mono">$21.53 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.95m</td>
+                            <td class="mono">84522232</td>
+                            <td class="mono danger">30.7280</td>
+                            <td class="mono">0.02323566</td>
+                            <td class="mono danger">-20.2342%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-10</td>
+                            <td class="mono">$19.58 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.10m</td>
+                            <td class="mono">87636255</td>
+                            <td class="mono danger">28.4927</td>
+                            <td class="mono">0.02414008</td>
+                            <td class="mono danger">-7.4627%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-09</td>
+                            <td class="mono">$17.63 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.25m</td>
+                            <td class="mono">90750278</td>
+                            <td class="mono danger">26.2891</td>
+                            <td class="mono">0.02504823</td>
+                            <td class="mono success">+4.0678%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-08</td>
+                            <td class="mono">$15.68 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.83m</td>
+                            <td class="mono">89785122</td>
+                            <td class="mono danger">27.8758</td>
+                            <td class="mono">0.02606852</td>
+                            <td class="mono success">+14.0104%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-07</td>
+                            <td class="mono">$13.73 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.41m</td>
+                            <td class="mono">88819966</td>
+                            <td class="mono danger">29.4312</td>
+                            <td class="mono">0.02738703</td>
+                            <td class="mono success">+23.5628%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-06</td>
+                            <td class="mono">$15.32 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.99m</td>
+                            <td class="mono">85423112</td>
+                            <td class="mono danger">30.9450</td>
+                            <td class="mono">0.02872996</td>
+                            <td class="mono success">+6.3841%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-05</td>
+                            <td class="mono">$16.91 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.57m</td>
+                            <td class="mono">82026258</td>
+                            <td class="mono danger">32.4622</td>
+                            <td class="mono">0.03009891</td>
+                            <td class="mono danger">-9.6166%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-04</td>
+                            <td class="mono">$18.49 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.29m</td>
+                            <td class="mono">81874137</td>
+                            <td class="mono danger">31.7580</td>
+                            <td class="mono">0.02783195</td>
+                            <td class="mono danger">-14.6262%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-03</td>
+                            <td class="mono">$20.08 if 'Fees' in r else '-'</td>
+                            <td class="mono">12.02m</td>
+                            <td class="mono">81722015</td>
+                            <td class="mono danger">31.0201</td>
+                            <td class="mono">0.02555010</td>
+                            <td class="mono danger">-21.5159%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-02</td>
+                            <td class="mono">$18.89 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.74m</td>
+                            <td class="mono">81569894</td>
+                            <td class="mono danger">30.2269</td>
+                            <td class="mono">0.02325236</td>
+                            <td class="mono danger">-12.2336%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-03-01</td>
+                            <td class="mono">$17.70 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.47m</td>
+                            <td class="mono">81873919</td>
+                            <td class="mono danger">29.4676</td>
+                            <td class="mono">0.02093822</td>
+                            <td class="mono danger">-0.7933%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-28</td>
+                            <td class="mono">$16.51 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.71m</td>
+                            <td class="mono">82177944</td>
+                            <td class="mono danger">27.4737</td>
+                            <td class="mono">0.02291267</td>
+                            <td class="mono danger">-7.7099%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-27</td>
+                            <td class="mono">$15.32 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.94m</td>
+                            <td class="mono">82305710</td>
+                            <td class="mono danger">25.5046</td>
+                            <td class="mono">0.02488725</td>
+                            <td class="mono danger">-15.3061%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-26</td>
+                            <td class="mono">$19.21 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.17m</td>
+                            <td class="mono">82433476</td>
+                            <td class="mono danger">23.5629</td>
+                            <td class="mono">0.02686113</td>
+                            <td class="mono danger">-19.4227%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-25</td>
+                            <td class="mono">$23.09 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.41m</td>
+                            <td class="mono">79800497</td>
+                            <td class="mono danger">21.5775</td>
+                            <td class="mono">0.02883511</td>
+                            <td class="mono danger">-23.0183%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-24</td>
+                            <td class="mono">$26.97 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.45m</td>
+                            <td class="mono">77167518</td>
+                            <td class="mono danger">21.5310</td>
+                            <td class="mono">0.02911922</td>
+                            <td class="mono danger">-19.6606%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-23</td>
+                            <td class="mono">$30.86 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.49m</td>
+                            <td class="mono">74534538</td>
+                            <td class="mono danger">21.1970</td>
+                            <td class="mono">0.02937057</td>
+                            <td class="mono danger">-16.1142%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-22</td>
+                            <td class="mono">$29.41 if 'Fees' in r else '-'</td>
+                            <td class="mono">8.53m</td>
+                            <td class="mono">77152888</td>
+                            <td class="mono danger">20.7268</td>
+                            <td class="mono">0.02959227</td>
+                            <td class="mono danger">-28.7795%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-20</td>
+                            <td class="mono">$26.51 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.21m</td>
+                            <td class="mono">79862692</td>
+                            <td class="mono danger">20.9600</td>
+                            <td class="mono">0.03017909</td>
+                            <td class="mono danger">-51.4044%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-19</td>
+                            <td class="mono">$25.06 if 'Fees' in r else '-'</td>
+                            <td class="mono">9.85m</td>
+                            <td class="mono">79954148</td>
+                            <td class="mono danger">21.6994</td>
+                            <td class="mono">0.03060057</td>
+                            <td class="mono danger">-61.8982%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-18</td>
+                            <td class="mono">$23.52 if 'Fees' in r else '-'</td>
+                            <td class="mono">10.49m</td>
+                            <td class="mono">81795516</td>
+                            <td class="mono danger">22.4291</td>
+                            <td class="mono">0.03105360</td>
+                            <td class="mono danger">-53.9465%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-17</td>
+                            <td class="mono">$21.98 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.13m</td>
+                            <td class="mono">83636885</td>
+                            <td class="mono danger">23.1745</td>
+                            <td class="mono">0.03154124</td>
+                            <td class="mono danger">-47.6220%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-16</td>
+                            <td class="mono">$20.44 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.33m</td>
+                            <td class="mono">83172808</td>
+                            <td class="mono danger">23.0483</td>
+                            <td class="mono">0.02735977</td>
+                            <td class="mono danger">-31.5556%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-15</td>
+                            <td class="mono">$18.90 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.52m</td>
+                            <td class="mono">82708730</td>
+                            <td class="mono danger">23.0172</td>
+                            <td class="mono">0.02319039</td>
+                            <td class="mono danger">-9.8010%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-14</td>
+                            <td class="mono">$21.30 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.72m</td>
+                            <td class="mono">82244652</td>
+                            <td class="mono danger">23.1115</td>
+                            <td class="mono">0.01903348</td>
+                            <td class="mono success">+8.1284%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-13</td>
+                            <td class="mono">$23.71 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.92m</td>
+                            <td class="mono">81914010</td>
+                            <td class="mono danger">23.0418</td>
+                            <td class="mono">0.01488907</td>
+                            <td class="mono success">+38.6801%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-12</td>
+                            <td class="mono">$26.11 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.65m</td>
+                            <td class="mono">81583368</td>
+                            <td class="mono danger">21.8896</td>
+                            <td class="mono">0.02250566</td>
+                            <td class="mono danger">-7.9659%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-02-11</td>
+                            <td class="mono">$28.51 if 'Fees' in r else '-'</td>
+                            <td class="mono">11.38m</td>
+                            <td class="mono">79947917</td>
+                            <td class="mono danger">20.3223</td>
+                            <td class="mono">0.03037147</td>
+                            <td class="mono danger">-31.5995%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-16</td>
+                            <td class="mono">$13.03 if 'Fees' in r else '-'</td>
+                            <td class="mono">15.72m</td>
+                            <td class="mono">85505719</td>
+                            <td class="mono danger">20.4771</td>
+                            <td class="mono">0.01257824</td>
+                            <td class="mono success">+84.3690%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-15</td>
+                            <td class="mono">$14.70 if 'Fees' in r else '-'</td>
+                            <td class="mono">16.37m</td>
+                            <td class="mono">86297819</td>
+                            <td class="mono danger">21.2306</td>
+                            <td class="mono">0.01911320</td>
+                            <td class="mono danger">-0.4171%</td>
+                            <td class="tiny">Speculation</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-14</td>
+                            <td class="mono">$16.36 if 'Fees' in r else '-'</td>
+                            <td class="mono">17.03m</td>
+                            <td class="mono">87891283</td>
+                            <td class="mono danger">21.5826</td>
+                            <td class="mono">0.02534899</td>
+                            <td class="mono danger">-41.2637%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-13</td>
+                            <td class="mono">$15.02 if 'Fees' in r else '-'</td>
+                            <td class="mono">17.68m</td>
+                            <td class="mono">89484746</td>
+                            <td class="mono danger">21.4758</td>
+                            <td class="mono">0.03166745</td>
+                            <td class="mono danger">-28.9313%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-12</td>
+                            <td class="mono">$13.67 if 'Fees' in r else '-'</td>
+                            <td class="mono">18.33m</td>
+                            <td class="mono">86944994</td>
+                            <td class="mono danger">21.6492</td>
+                            <td class="mono">0.03807172</td>
+                            <td class="mono danger">-20.2256%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                        <tr>
+                            <td class="mono">2021-01-11</td>
+                            <td class="mono">$12.32 if 'Fees' in r else '-'</td>
+                            <td class="mono">17.64m</td>
+                            <td class="mono">84405243</td>
+                            <td class="mono danger">20.6481</td>
+                            <td class="mono">0.03881922</td>
+                            <td class="mono danger">-0.8449%</td>
+                            <td class="tiny">Boom</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:50px; border-top:1px solid #333; padding-top:10px; color:#444; text-align:center;">
+                <p><strong>Research Suite v8.0 | Forensic Audit Core</strong><br>
+                Generated via Python 3.x | Matplotlib | Statsmodels | Pandas</p>
+            </div>
+        </body>
+        </html>
+        
